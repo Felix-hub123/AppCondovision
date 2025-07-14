@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36202.13 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppCondovision", "AppCondovision\AppCondovision.csproj", "{76DA6C4F-3A88-43CC-A00E-3CD90C20B580}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{76DA6C4F-3A88-43CC-A00E-3CD90C20B580}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76DA6C4F-3A88-43CC-A00E-3CD90C20B580}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76DA6C4F-3A88-43CC-A00E-3CD90C20B580}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76DA6C4F-3A88-43CC-A00E-3CD90C20B580}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {87FDB858-6FE2-4A11-9A51-F9EF54645FED}
+	EndGlobalSection
+EndGlobal
