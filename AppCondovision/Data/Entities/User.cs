@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AppCondovision.Data.Entities
 {
-    public class User : IdentityUser<int>, IEntity
+    public class User : IdentityUser
     {
         [Required]
         [MaxLength(50)]
@@ -32,9 +32,11 @@ namespace AppCondovision.Data.Entities
      
         public virtual City? City { get; set; }
         public virtual Company? Company { get; set; }
-        public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+     
+        
+        public virtual ICollection<Meeting> Meetings { get; set; } = new List<Meeting>();
 
-    
+
         public string FullName => $"{FirstName} {LastName}";
     }
 }
