@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CondoVision.Data.Data
+namespace CondoVision.Models.Interface
 {
     public interface IEntity
     {

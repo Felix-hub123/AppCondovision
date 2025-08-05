@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CondoVision.Models.Interface;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -8,30 +9,25 @@ using System.Threading.Tasks;
 
 namespace CondoVision.Data.Entities
 {
-    public class Condominium
+    public class Condominium : IEntity
     {
         [Key]
         public int Id { get; set; }
 
         [Required]
-        [StringLength(200)]
+        [StringLength(100)]
         public string? Name { get; set; }
 
-        [StringLength(500)]
+        [StringLength(200)]
         public string? Address { get; set; }
 
-        [StringLength(100)]
-        public string? City { get; set; }
-
-        [StringLength(20)]
-        public string? PostalCode { get; set; }
-
-        [Required]
         public int CompanyId { get; set; }
-        [ForeignKey("CompanyId")]
-        public Company? Company { get; set; }
 
-        public ICollection<Unit>? Units { get; set; }
-        public ICollection<User>? Managers { get; set; }
+        [ForeignKey("CompanyId")]
+        public virtual Company? Company { get; set; }
+
+        public bool WasDeleted { get; set; }
+
+        public virtual ICollection<Unit>? Units { get; set; }
     }
 }

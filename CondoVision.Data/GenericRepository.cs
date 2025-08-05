@@ -1,11 +1,6 @@
-﻿using CondoVision.Data.Data;
+﻿using CondoVision.Models.Interface;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CondoVision.Data
 {
@@ -13,25 +8,22 @@ namespace CondoVision.Data
     {
         protected readonly DataContext _context;
         protected readonly DbSet<T> _dbSet;
+
         public GenericRepository(DataContext context)
         {
             _context = context;
-            _dbSet = context.Set<T>();
+            _dbSet = _context.Set<T>();
         }
 
-        public async Task DeleteAsync(int id)
+
+        public async Task<IEnumerable<T>> GetAllAsync()
         {
-            var entity = await GetByIdAsync(id);
-            if (entity != null)
-            {
-                _dbSet.Remove(entity);
-            }
-            await Task.CompletedTask;
+            return await _dbSet.Where(e => !e.WasDeleted).ToListAsync();
         }
 
-        public async Task<int> SaveChangesAsync()
+        public async Task<T?> GetByIdAsync(int id) 
         {
-            return await _context.SaveChangesAsync();
+            return await _dbSet.FirstOrDefaultAsync(e => e.Id == id && !e.WasDeleted);
         }
 
         public async Task AddAsync(T entity)
@@ -39,27 +31,23 @@ namespace CondoVision.Data
             await _dbSet.AddAsync(entity);
         }
 
-        public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
+        public void Update(T entity)
         {
-            return await _dbSet.Where(predicate).ToListAsync();
+            _dbSet.Attach(entity);
+            _context.Entry(entity).State = EntityState.Modified;
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync()
+        public void Delete(T entity)
         {
-            return await _dbSet.ToListAsync();
+            entity.WasDeleted = true;
+            Update(entity);
         }
 
-        public async Task<T?> GetByIdAsync(int id)
+        public async Task<int> CompleteAsync()
         {
-            return await _dbSet.FindAsync(id);
-        }
-
-        public async Task UpdateAsync(T entity)
-        {
-            _dbSet.Update(entity);
-            await Task.CompletedTask; 
+            return await _context.SaveChangesAsync();
         }
     }
-    
-    
+
+
 }

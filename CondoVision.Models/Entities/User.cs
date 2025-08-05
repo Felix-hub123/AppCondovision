@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+
 
 namespace CondoVision.Data.Entities
 {
@@ -33,5 +33,18 @@ namespace CondoVision.Data.Entities
         public Unit? Unit { get; set; }
 
         public UserType UserType { get; set; }
+
+        public DateTime DateOfBirth { get; set; }
+        [MaxLength(200)]
+        public string? Address { get; set; }
+
+        public Guid? ProfileImageId { get; set; }
+
+       public bool WasDeleted { get; set; }
+
+        public ICollection<Unit>? OwnedUnits { get; set; }
+        public ICollection<Condominium>? ManagedCondominiums { get; set; }
+
+        public virtual ICollection<Unit>? UnitsOwned { get; set; }
     }
 }
