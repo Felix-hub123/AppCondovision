@@ -1,5 +1,5 @@
 ﻿using CondoVision.Data.Entities;
-using CondoVision.Models.Models;
+using CondoVision.Models;
 using Microsoft.AspNetCore.Identity;
 using System.Collections.Generic;
 using System.Security.Claims;
@@ -165,6 +165,11 @@ namespace CondoVision.Data.Helper
         /// <param name="password">Nova password.</param>
         /// <returns>Resultado da operação de redefinição.</returns>
         Task<IdentityResult> ResetPasswordAsync(User user, string token, string password);
+
+
+        Task<IdentityResult> DeleteUserAsync(User user);
+
+        Task<User?> GetUserWithDetailsAsync(string userId);
     }
 }
 

@@ -1,12 +1,10 @@
 ﻿using CondoVision.Data.Entities;
-using CondoVision.Models.Models;
+using CondoVision.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace CondoVision.Data.Helper
 {
@@ -156,7 +154,7 @@ namespace CondoVision.Data.Helper
         {
             await _signInManager.SignOutAsync();
         }
-      
+
 
 
         /// <summary>
@@ -215,7 +213,7 @@ namespace CondoVision.Data.Helper
         /// </summary>
         /// <param name="user">Utilizador alvo.</param>
         /// <returns>Token gerado.</returns>
-        public async  Task<string> GenerateEmailConfirmationTokenAsync(User user)
+        public async Task<string> GenerateEmailConfirmationTokenAsync(User user)
         {
             return await _userManager.GenerateEmailConfirmationTokenAsync(user);
         }
@@ -227,7 +225,7 @@ namespace CondoVision.Data.Helper
         /// <param name="user">Utilizador alvo.</param>
         /// <param name="token">Token de confirmação.</param>
         /// <returns>Resultado da confirmação.</returns>
-        public async  Task<IdentityResult> ConfirmEmailAsync(User user, string token)
+        public async Task<IdentityResult> ConfirmEmailAsync(User user, string token)
         {
             return await _userManager.ConfirmEmailAsync(user, token);
         }
@@ -238,7 +236,7 @@ namespace CondoVision.Data.Helper
         /// </summary>
         /// <param name="user">Utilizador alvo.</param>
         /// <returns>Token gerado para reset de password.</returns>
-        public async  Task<string> GeneratePasswordResetTokenAsync(User user)
+        public async Task<string> GeneratePasswordResetTokenAsync(User user)
         {
             return await _userManager.GeneratePasswordResetTokenAsync(user);
         }
@@ -291,8 +289,21 @@ namespace CondoVision.Data.Helper
             return await _userManager.GetRolesAsync(user);
         }
 
-      
 
+        public async Task<IdentityResult> DeleteUserAsync(User user)
+        {
 
+            user.WasDeleted = true;
+            return await _userManager.UpdateAsync(user);
+        }
+
+        public async Task<User?> GetUserWithDetailsAsync(string userId)
+        {
+            return await _userManager.Users
+                .Include(u => u.Company)
+                .Include(u => u.OwnedUnits)
+                .Include(u => u.ManagedCondominiums)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+        }
     }
 }

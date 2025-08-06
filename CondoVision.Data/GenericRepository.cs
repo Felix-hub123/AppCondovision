@@ -43,9 +43,50 @@ namespace CondoVision.Data
             Update(entity);
         }
 
+        public async Task DeleteAsync(int id) 
+        {
+            var entity = await GetByIdAsync(id);
+            if (entity != null)
+            {
+                entity.WasDeleted = true;
+                Update(entity);
+            }
+        }
+
         public async Task<int> CompleteAsync()
         {
             return await _context.SaveChangesAsync();
+        }
+
+        public IQueryable<T> GetQueryable()
+        {
+            return _dbSet.Where(e => !e.WasDeleted);
+        }
+
+
+        public async Task<IEnumerable<T>> GetAllWithIncludesAsync(params Expression<Func<T, object>>[] includeExpressions)
+        {
+            IQueryable<T> query = _dbSet;
+            foreach (var includeExpression in includeExpressions)
+            {
+                query = query.Include(includeExpression);
+            }
+            return await query.Where(e => !e.WasDeleted).ToListAsync();
+        }
+
+        public async Task<T?> GetByIdWithIncludesAsync(int id, params Expression<Func<T, object>>[] includeExpressions)
+        {
+            IQueryable<T> query = _dbSet;
+            foreach (var includeExpression in includeExpressions)
+            {
+                query = query.Include(includeExpression);
+            }
+            return await query.Where(e => e.Id == id && !e.WasDeleted).FirstOrDefaultAsync();
+        }
+
+        public async Task<IEnumerable<T>> GetAllAsync(IQueryable<T> query)
+        {
+            return await query.ToListAsync();
         }
     }
 

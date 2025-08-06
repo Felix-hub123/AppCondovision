@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace CondoVision.Models.Models
+namespace CondoVision.Models
 {
     /// <summary>
     /// ViewModel utilizado para capturar os dados do formulário de login do utilizador,

@@ -34,7 +34,7 @@ namespace CondoVision.Data
            
             builder.Entity<Unit>()
                 .HasOne(u => u.Owner)
-                .WithMany(o => o.UnitsOwned)
+                .WithMany(o => o.OwnedUnits)
                 .HasForeignKey(u => u.OwnerId);
 
            

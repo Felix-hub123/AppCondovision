@@ -1,4 +1,5 @@
-﻿using CondoVision.Models.Interface;
+﻿using CondoVision.Data.Entities;
+using CondoVision.Models.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +17,20 @@ namespace CondoVision.Data
         void Update(T entity); 
         void Delete(T entity); 
         Task<int> CompleteAsync();
+
+        IQueryable<T> GetQueryable();
+
+        Task DeleteAsync(int id);
+
+        Task<IEnumerable<T>> GetAllAsync(IQueryable<T> query);
+
+        Task<IEnumerable<T>> GetAllWithIncludesAsync(params Expression<Func<T, object>>[] includeExpressions);
+
+        Task<T?> GetByIdWithIncludesAsync(int id, params Expression<Func<T, object>>[] includeExpressions);
     }
+
+
+}
    
     
-}
+

@@ -45,6 +45,6 @@ namespace CondoVision.Data.Entities
         public ICollection<Unit>? OwnedUnits { get; set; }
         public ICollection<Condominium>? ManagedCondominiums { get; set; }
 
-        public virtual ICollection<Unit>? UnitsOwned { get; set; }
+       
     }
 }

@@ -3,11 +3,11 @@ using CondoVision.Data.Entities;
 
 namespace CondoVision.Models.Interface
 {
-    public class CompanyService : ICompanyService
+    public class CompanyRepository : ICompanyRepository
     {
         private readonly IGenericRepository<Company> _companyRepository;
 
-        public CompanyService(IGenericRepository<Company> companyRepository)
+        public CompanyRepository(IGenericRepository<Company> companyRepository)
         {
             _companyRepository = companyRepository;
         }
@@ -25,14 +25,14 @@ namespace CondoVision.Models.Interface
         public async Task<Company> AddCompanyAsync(Company company)
         {
             await _companyRepository.AddAsync(company);
-            await _companyRepository.CompleteAsync(); // Salva as alterações
+            await _companyRepository.CompleteAsync(); 
             return company;
         }
 
         public async Task<Company> UpdateCompanyAsync(Company company)
         {
             _companyRepository.Update(company);
-            await _companyRepository.CompleteAsync(); // Salva as alterações
+            await _companyRepository.CompleteAsync(); 
             return company;
         }
 
@@ -42,7 +42,7 @@ namespace CondoVision.Models.Interface
             if (company != null)
             {
                 _companyRepository.Delete(company);
-                await _companyRepository.CompleteAsync(); // Salva as alterações
+                await _companyRepository.CompleteAsync(); 
             }
         }
     }

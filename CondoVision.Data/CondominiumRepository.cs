@@ -33,5 +33,20 @@ namespace CondoVision.Models.Entities
         {
             return await _dbSet.Where(c => !c.WasDeleted).ToListAsync();
         }
+
+        public async Task<List<Condominium>> GetAllWithCompaniesAsync()
+        {
+            return await GetQueryable().Include(c => c.Company).ToListAsync();
+        }
+
+        public async Task<IEnumerable<Condominium>> GetAllCondominiumsWithCompanyAsync()
+        {
+            return await this.GetAllWithIncludesAsync(c => c.Company);
+        }
+
+        public async Task<Condominium?> GetCondominiumWithCompanyAsync(int id)
+        {
+            return await this.GetByIdWithIncludesAsync(id, c => c.Company);
+        }
     }
 }

@@ -31,6 +31,7 @@ namespace CondoVision.Data
             await _context.Database.EnsureCreatedAsync();
             await CheckRolesAsync();
             await CheckCompanyAsync();
+            await CheckCondominiumAsync();
             await CheckAdminUserAsync();
         }
 
@@ -64,6 +65,21 @@ namespace CondoVision.Data
             }
         }
 
+
+        private async Task CheckCondominiumAsync()
+        {
+            // Verificamos se já existem condomínios
+            if (!_context.Condominiums.Any())
+            {
+                // Buscamos a empresa padrão para associar
+                var company = await _context.Companies.FirstOrDefaultAsync();
+                if (company == null)
+                {
+                    _logger.LogWarning("Nenhuma empresa encontrada para associar ao condomínio. O condomínio não será criado.");
+                    return;
+                }
+            }
+        }
 
         private async Task CheckAdminUserAsync()
         {

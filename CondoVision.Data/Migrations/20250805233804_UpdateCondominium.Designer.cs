@@ -4,6 +4,7 @@ using CondoVision.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CondoVision.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250805233804_UpdateCondominium")]
+    partial class UpdateCondominium
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -119,11 +122,16 @@ namespace CondoVision.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CondominiumId");
 
                     b.HasIndex("OwnerId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Units");
                 });
@@ -396,8 +404,12 @@ namespace CondoVision.Data.Migrations
                         .IsRequired();
 
                     b.HasOne("CondoVision.Data.Entities.User", "Owner")
-                        .WithMany("OwnedUnits")
+                        .WithMany("UnitsOwned")
                         .HasForeignKey("OwnerId");
+
+                    b.HasOne("CondoVision.Data.Entities.User", null)
+                        .WithMany("OwnedUnits")
+                        .HasForeignKey("UserId");
 
                     b.Navigation("Condominium");
 
@@ -500,6 +512,8 @@ namespace CondoVision.Data.Migrations
             modelBuilder.Entity("CondoVision.Data.Entities.User", b =>
                 {
                     b.Navigation("OwnedUnits");
+
+                    b.Navigation("UnitsOwned");
                 });
 #pragma warning restore 612, 618
         }

@@ -14,12 +14,16 @@ namespace CondoVision.Data.Entities
         [Key]
         public int Id { get; set; }
 
-        [Required]
-        [StringLength(100)]
+        [Required(ErrorMessage = "O nome do condomínio é obrigatório.")]
+        [StringLength(100, ErrorMessage = "O nome não pode exceder 100 caracteres.")]
         public string? Name { get; set; }
 
-        [StringLength(200)]
+
+        [Required(ErrorMessage = "A morada do condomínio é obrigatória.")]
+        [StringLength(200, ErrorMessage = "A morada não pode exceder 200 caracteres.")]
         public string? Address { get; set; }
+
+        public DateTime CreationDate { get; set; }
 
         public int CompanyId { get; set; }
 
@@ -27,6 +31,8 @@ namespace CondoVision.Data.Entities
         public virtual Company? Company { get; set; }
 
         public bool WasDeleted { get; set; }
+
+        public ICollection<User>? Users { get; set; }
 
         public virtual ICollection<Unit>? Units { get; set; }
     }

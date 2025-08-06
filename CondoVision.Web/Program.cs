@@ -30,7 +30,8 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 builder.Services.AddScoped<IUserHelper, UserHelper>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<ICondominiumRepository, CondominiumRepository>();
-builder.Services.AddScoped<ICompanyService, CompanyService>();
+builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
+builder.Services.AddScoped<IConverterHelper, ConverterHelper>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddTransient<SeedDb>();
 var app = builder.Build();

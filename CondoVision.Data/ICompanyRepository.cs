@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CondoVision.Models.Interface
 {
-    public interface ICompanyService
+    public interface ICompanyRepository
     {
         Task<IEnumerable<Company>> GetAllCompaniesAsync();
         Task<Company?> GetCompanyByIdAsync(int id);
