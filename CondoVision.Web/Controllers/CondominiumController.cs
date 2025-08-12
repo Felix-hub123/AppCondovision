@@ -1,6 +1,7 @@
 ﻿using CondoVision.Data;
 using CondoVision.Data.Entities;
 using CondoVision.Models.Interface;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CondoVision.Web.Controllers
@@ -19,7 +20,7 @@ namespace CondoVision.Web.Controllers
             _companyRepository = companyRepository;
         }
 
-
+        [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
             var condominiums = await _condominiumRepository.GetAllCondominiumsWithCompanyAsync();
@@ -91,7 +92,7 @@ namespace CondoVision.Web.Controllers
 
             if (ModelState.IsValid)
             {
-                _condominiumRepository.Update(condominium);
+                await _condominiumRepository.UpdateAsync(condominium);
                 await _condominiumRepository.CompleteAsync();
                 return RedirectToAction(nameof(Index));
             }

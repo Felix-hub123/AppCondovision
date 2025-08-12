@@ -76,11 +76,11 @@ namespace CondoVision.Web.Controllers
                 var companyId = model.CompanyId;
                 var user = _converterHelper.ToUser(model, companyId);
 
-                var result = await _userHelper.AddUserAsync(user, model.Password);
+                var result = await _userHelper.AddUserAsync(user, model.Password!);
 
                 if (result.Succeeded)
                 {
-                    await _userHelper.AddUserToRoleAsync(user, model.RoleName);
+                    await _userHelper.AddUserToRoleAsync(user, model.RoleName!);
                     _logger.LogInformation($"Usuário '{user.FullName}' criado com sucesso.");
                     return RedirectToAction(nameof(Index));
                 }
@@ -125,7 +125,7 @@ namespace CondoVision.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await _userHelper.GetUserByIdAsync(model.Id);
+                var user = await _userHelper.GetUserByIdAsync(model.Id!);
                 if (user == null)
                 {
                     return NotFound();

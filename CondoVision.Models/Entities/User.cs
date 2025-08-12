@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using CondoVision.Models.Entities;
+using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -38,13 +39,18 @@ namespace CondoVision.Data.Entities
         [MaxLength(200)]
         public string? Address { get; set; }
 
-        public Guid? ProfileImageId { get; set; }
+       [Display(Name = "Image")]
+        public Guid? ImageId { get; set; } 
 
        public bool WasDeleted { get; set; }
+
+        public ICollection<FractionOwner>? FractionOwners { get; set; }
 
         public ICollection<Unit>? OwnedUnits { get; set; }
         public ICollection<Condominium>? ManagedCondominiums { get; set; }
 
-       
+        public string ImageFullPath => ImageId == Guid.Empty
+            ? $"/images/users/noimage.png"
+            : $"https://condovision.blob.core.windows.net/users/{ImageId}.jpg";
     }
 }

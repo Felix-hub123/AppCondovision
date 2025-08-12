@@ -23,6 +23,11 @@ namespace CondoVision.Data.Entities
         [StringLength(200, ErrorMessage = "A morada não pode exceder 200 caracteres.")]
         public string? Address { get; set; }
 
+        [Display(Name = "Data de Registo")]
+        [DataType(DataType.Date)]
+        [DisplayFormat(DataFormatString = "{0:yyyy/MM/dd}", ApplyFormatInEditMode = true)]
+        public DateTime RegistrationDate { get; set; }
+
         public DateTime CreationDate { get; set; }
 
         public int CompanyId { get; set; }

@@ -24,7 +24,7 @@
             <tr>
                 <td>@Html.DisplayFor(modelItem => item.FullName)</td>
                 <td>@Html.DisplayFor(modelItem => item.Email)</td>
-                <td>@Html.DisplayFor(modelItem => item.Company.Name)</td>
+                <td>@Html.DisplayFor(modelItem => item.Company!.Name)</td>
                 <td>
                     <a asp-action="Edit" asp-route-id="@item.Id">Editar</a> |
                     <a asp-action="Details" asp-route-id="@item.Id">Detalhes</a> |

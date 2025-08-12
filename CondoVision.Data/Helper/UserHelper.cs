@@ -44,6 +44,7 @@ namespace CondoVision.Data.Helper
         /// </summary>
         /// <param name="user">Entidade do utilizador a criar.</param>
         /// <param name="password">Password do utilizador.</param>
+        /// <returns>Resultado da operação.</returns>
         public async Task<IdentityResult> AddUserAsync(User user, string password)
         {
             return await _userManager.CreateAsync(user, password);
@@ -55,7 +56,7 @@ namespace CondoVision.Data.Helper
         /// </summary>
         /// <param name="email">Email a procurar.</param>
         /// <returns>Usuário encontrado ou null.</returns>
-        public async Task<User> GetUserByEmailAsync(string email)
+        public async Task<User?> GetUserByEmailAsync(string email)
         {
             return await _userManager.FindByEmailAsync(email);
         }
@@ -102,7 +103,7 @@ namespace CondoVision.Data.Helper
         /// </summary>
         /// <param name="id">Identificador do utilizador.</param>
         /// <returns>Utilizador encontrado ou null.</returns>
-        public async Task<User> GetUserByIdAsync(string id)
+        public async Task<User?> GetUserByIdAsync(string id)
         {
             return await _userManager.FindByIdAsync(id);
         }
@@ -113,13 +114,13 @@ namespace CondoVision.Data.Helper
         /// </summary>
         /// <param name="userClaims">ClaimsPrincipal do utilizador.</param>
         /// <returns>Utilizador encontrado ou null.</returns>
-        public async Task<User> GetUserAsync(ClaimsPrincipal userClaims)
+        public async Task<User?> GetUserAsync(ClaimsPrincipal userClaims)
         {
             var userId = userClaims?.FindFirstValue(ClaimTypes.NameIdentifier)
-                         ?? userClaims?.FindFirstValue(JwtRegisteredClaimNames.Sub);
+                                   ?? userClaims?.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
             if (string.IsNullOrEmpty(userId))
-                return null;
+                return null; // Alterado de null! para null
 
             return await GetUserByIdAsync(userId);
         }
@@ -136,20 +137,22 @@ namespace CondoVision.Data.Helper
         }
 
         /// <summary>
-        /// Atualiza os dados de um utilizador existente.
+        /// Valida a password do utilizador sem efetuar login.
         /// </summary>
-        /// <param name="user">Entidade do utilizador a atualizar.</param>
-        /// <returns>Resultado da operação.</returns>
+        /// <param name="user">Utilizador alvo.</param>
+        /// <param name="password">Password a validar.</param>
+        /// <returns>Resultado da validação do password.</returns>
         public async Task<SignInResult> ValidatePasswordAsync(User user, string password)
         {
             return await _signInManager.CheckPasswordSignInAsync(
-             user, password, false);
+                 user, password, false);
         }
 
 
         /// <summary>
         /// Efetua logout do utilizador atual.
         /// </summary>
+        /// <returns>Uma Task que representa a operação assíncrona.</returns>
         public async Task LogoutAsync()
         {
             await _signInManager.SignOutAsync();
@@ -158,15 +161,14 @@ namespace CondoVision.Data.Helper
 
 
         /// <summary>
-        /// Valida a password do utilizador sem efetuar login.
+        /// Efetua o login do utilizador.
         /// </summary>
-        /// <param name="user">Utilizador alvo.</param>
-        /// <param name="password">Password a validar.</param>
-        /// <returns>Resultado da validação do password.</returns>
+        /// <param name="model">ViewModel com credenciais de login.</param>
+        /// <returns>Resultado do login.</returns>
         public async Task<SignInResult> LoginAsync(LoginViewModel model)
         {
             return await _signInManager.PasswordSignInAsync(
-                model.Email,
+                model.Username,
                 model.Password,
                 model.RememberMe,
                 false
@@ -178,9 +180,9 @@ namespace CondoVision.Data.Helper
         /// </summary>
         /// <param name="user">ClaimsPrincipal do utilizador.</param>
         /// <returns>Identificador do utilizador ou null.</returns>
-        public string GetUserId(ClaimsPrincipal user)
+        public string? GetUserId(ClaimsPrincipal user)
         {
-            return user?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            return user?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         }
 
 
@@ -196,17 +198,6 @@ namespace CondoVision.Data.Helper
             return await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
         }
 
-
-
-        public string GetUserId()
-        {
-            var user = _httpContextAccessor.HttpContext?.User;
-
-            if (user == null)
-                return null;
-
-            return user.FindFirstValue(ClaimTypes.NameIdentifier);
-        }
 
         /// <summary>
         /// Gera um token para confirmação de email para o utilizador.
@@ -256,17 +247,25 @@ namespace CondoVision.Data.Helper
 
 
         /// <summary>
-        /// Obtém todos os utilizadores que pertencem a uma role especificada.
+        /// Obtém todos os utilizadores que pertencem a uma role especificada,
+        /// excluindo os que foram logicamente eliminados.
         /// </summary>
         /// <param name="roleName">Nome da role.</param>
         /// <returns>Lista de utilizadores.</returns>
-
-        public async Task<List<User>> GetUsersByRoleAsync(string roleName)
+        public async Task<IEnumerable<User>> GetUsersInRoleAsync(string roleName) // <--- MÉTODO CONSOLIDADO E CORRIGIDO
         {
+            // Verifica se a role existe
+            if (!await _roleManager.RoleExistsAsync(roleName))
+            {
+                return new List<User>(); // Retorna lista vazia se a role não existir
+            }
+            // Obtém todos os utilizadores na role especificada
             var users = await _userManager.GetUsersInRoleAsync(roleName);
-            return users.ToList();
+            // Filtra por WasDeleted (assumindo que User implementa IEntity e tem WasDeleted)
+            return users.Where(u => !u.WasDeleted).ToList();
         }
 
+        // Removido o método GetUsersByRoleAsync duplicado
 
         /// <summary>
         /// Verifica se o email do utilizador está confirmado.
@@ -290,13 +289,22 @@ namespace CondoVision.Data.Helper
         }
 
 
+        /// <summary>
+        /// Marca um utilizador como logicamente eliminado e atualiza na base de dados.
+        /// </summary>
+        /// <param name="user">Utilizador a ser marcado como eliminado.</param>
+        /// <returns>Resultado da operação de atualização.</returns>
         public async Task<IdentityResult> DeleteUserAsync(User user)
         {
-
             user.WasDeleted = true;
             return await _userManager.UpdateAsync(user);
         }
 
+        /// <summary>
+        /// Obtém um utilizador pelo seu ID, incluindo detalhes da Companhia, Unidades Detidas e Condomínios Geridos.
+        /// </summary>
+        /// <param name="userId">ID do utilizador.</param>
+        /// <returns>Utilizador com detalhes ou null.</returns>
         public async Task<User?> GetUserWithDetailsAsync(string userId)
         {
             return await _userManager.Users
@@ -304,6 +312,21 @@ namespace CondoVision.Data.Helper
                 .Include(u => u.OwnedUnits)
                 .Include(u => u.ManagedCondominiums)
                 .FirstOrDefaultAsync(u => u.Id == userId);
+        }
+
+        // Este método GetUserId sem parâmetro user ClaimsPrincipal, usa o HttpContextAccessor
+        /// <summary>
+        /// Obtém o identificador do utilizador a partir do HttpContext atual.
+        /// </summary>
+        /// <returns>Identificador do utilizador ou null.</returns>
+        public string? GetUserId()
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+
+            if (user == null)
+                return null;
+
+            return user.FindFirstValue(ClaimTypes.NameIdentifier); 
         }
     }
 }

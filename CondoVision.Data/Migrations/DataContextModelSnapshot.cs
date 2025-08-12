@@ -86,6 +86,9 @@ namespace CondoVision.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<DateTime>("RegistrationDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("WasDeleted")
                         .HasColumnType("bit");
 
@@ -162,6 +165,9 @@ namespace CondoVision.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<Guid?>("ImageId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
@@ -184,9 +190,6 @@ namespace CondoVision.Data.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
-
-                    b.Property<Guid?>("ProfileImageId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
@@ -226,6 +229,73 @@ namespace CondoVision.Data.Migrations
                     b.HasIndex("UnitId");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("CondoVision.Models.Entities.Fraction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Area")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Block")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<int>("CondominiumId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Floor")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<decimal>("Permilage")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<string>("UnitNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<bool>("WasDeleted")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CondominiumId");
+
+                    b.ToTable("Fractions");
+                });
+
+            modelBuilder.Entity("CondoVision.Models.Entities.FractionOwner", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("FractionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("WasDeleted")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FractionId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("FractionOwners");
                 });
 
             modelBuilder.Entity("CondominiumUser", b =>
@@ -419,6 +489,36 @@ namespace CondoVision.Data.Migrations
                     b.Navigation("Unit");
                 });
 
+            modelBuilder.Entity("CondoVision.Models.Entities.Fraction", b =>
+                {
+                    b.HasOne("CondoVision.Data.Entities.Condominium", "Condominium")
+                        .WithMany()
+                        .HasForeignKey("CondominiumId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Condominium");
+                });
+
+            modelBuilder.Entity("CondoVision.Models.Entities.FractionOwner", b =>
+                {
+                    b.HasOne("CondoVision.Models.Entities.Fraction", "Fraction")
+                        .WithMany("FractionOwners")
+                        .HasForeignKey("FractionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CondoVision.Data.Entities.User", "User")
+                        .WithMany("FractionOwners")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Fraction");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("CondominiumUser", b =>
                 {
                     b.HasOne("CondoVision.Data.Entities.Condominium", null)
@@ -499,7 +599,14 @@ namespace CondoVision.Data.Migrations
 
             modelBuilder.Entity("CondoVision.Data.Entities.User", b =>
                 {
+                    b.Navigation("FractionOwners");
+
                     b.Navigation("OwnedUnits");
+                });
+
+            modelBuilder.Entity("CondoVision.Models.Entities.Fraction", b =>
+                {
+                    b.Navigation("FractionOwners");
                 });
 #pragma warning restore 612, 618
         }

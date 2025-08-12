@@ -28,7 +28,7 @@ namespace CondoVision.Models
         [DataType(DataType.Password)]
         [Display(Name = "Confirmar Password")]
         [Compare("Password", ErrorMessage = "A password e a confirmação da password não correspondem.")]
-        public string ConfirmPassword { get; set; }
+        public string? ConfirmPassword { get; set; }
 
         [Required(ErrorMessage = "O contribuinte é obrigatório.")]
         [StringLength(20, ErrorMessage = "O contribuinte não pode exceder 20 caracteres.")]

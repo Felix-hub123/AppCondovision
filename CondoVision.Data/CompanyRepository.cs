@@ -31,7 +31,7 @@ namespace CondoVision.Models.Interface
 
         public async Task<Company> UpdateCompanyAsync(Company company)
         {
-            _companyRepository.Update(company);
+            await _companyRepository.UpdateAsync(company);
             await _companyRepository.CompleteAsync(); 
             return company;
         }
@@ -41,7 +41,7 @@ namespace CondoVision.Models.Interface
             var company = await _companyRepository.GetByIdAsync(id);
             if (company != null)
             {
-                _companyRepository.Delete(company);
+                await _companyRepository.UpdateAsync(company);
                 await _companyRepository.CompleteAsync(); 
             }
         }

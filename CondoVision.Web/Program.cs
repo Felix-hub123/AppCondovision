@@ -5,6 +5,7 @@ using CondoVision.Models.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using CondoVision.Models.Interface;
+using Microsoft.Extensions.Azure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +33,11 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 builder.Services.AddScoped<ICondominiumRepository, CondominiumRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IConverterHelper, ConverterHelper>();
+builder.Services.AddScoped<IUserHelper, UserHelper>();
+builder.Services.AddScoped<IEMailHelper, EMailHelper>();
+builder.Services.AddScoped<IBlobHelper, BlobHelper>();
+builder.Services.AddScoped<IFractionRepository, FractionRepository>();
+builder.Services.AddScoped<IFractionOwnerRepository, FractionOwnerRepository>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddTransient<SeedDb>();
 var app = builder.Build();

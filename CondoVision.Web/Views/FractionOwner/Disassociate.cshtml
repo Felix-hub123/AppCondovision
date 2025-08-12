@@ -1,0 +1,69 @@
+﻿@model CondoVision.Models.FractionOwnerViewModel
+
+@{
+    ViewData["Title"] = "Desassociar Proprietário da Fração";
+}
+
+<h1>Desassociar Proprietário da Fração</h1>
+
+<h3>Tem certeza de que deseja desassociar este proprietário desta fração?</h3>
+<div>
+    <h4>Associação</h4>
+    <hr />
+    @* Exibe mensagens de erro, se houver *@
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <dl class="row">
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.UnitNumber)
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.UnitNumber)
+        </dd>
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.FractionFloor)
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.FractionFloor)
+        </dd>
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.FractionBlock)
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.FractionBlock)
+            </dt>
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.CondominiumName)
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.CondominiumName)
+        </dd>
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.OwnerFullName)
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.OwnerFullName)
+        </dd>
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.OwnerEmail)
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.OwnerEmail)
+        </dd>
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.WasDeleted)
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.WasDeleted)
+        </dd>
+    </dl>
+
+    @* O formulário submete para a ação POST DisassociateConfirmed no controlador *@
+    <form asp-action="Disassociate" method="post">
+        @* Este campo hidden é crucial para enviar o ID da associação para o controlador *@
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="btn btn-danger">Confirmar Desassociação</button> |
+        <a asp-action="Index" class="btn btn-secondary">Voltar para a Lista</a>
+    </form>
+</div>
+
+

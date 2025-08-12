@@ -1,8 +1,172 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "CondoVision: Soluções de Gestão de Condomínios para Empresas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@section Styles {
+    <link rel="stylesheet" href="~/css/site-home.css" asp-append-version="true" />
+ }
+
+
+<section class="hero-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-7 col-md-9 col-sm-12">
+                @* Conteúdo principal à esquerda *@
+                <div class="hero-content-wrapper">
+                    <h1>A Solução Definitiva para a Gestão de Condomínios.</h1>
+                    <p class="lead">
+                        Capacite a sua empresa com uma plataforma robusta, intuitiva e escalável,
+                        desenhada para otimizar operações e impulsionar a satisfação dos seus clientes.
+                    </p>
+                    <p class="mt-4">
+                        <a class="btn btn-primary btn-lg animated-button me-3" href="#news-proposals-section-id">
+                            <i class="fas fa-handshake"></i> Descubra Nossas Soluções
+                        </a>
+                        <a class="btn btn-outline-primary btn-lg animated-button" href="@Url.Action("Contact", "Home")">
+                            <i class="fas fa-envelope"></i> Solicitar Demonstração
+                        </a>
+                    </p>
+                    @if (!User.Identity!.IsAuthenticated)
+                    {
+                        <p class="text-muted mt-4">
+                            Já é nosso cliente? <a asp-controller="Account" asp-action="Login">Aceda à sua conta aqui</a>.
+                        </p>
+                    }
+                </div>
+            </div>
+            <div class="col-lg-5 col-md-3 d-none d-md-block">
+                @* Coluna vazia para espaçamento visual ou para uma imagem/formulário que não vai ter agora *@
+                @* Este espaço seria para o formulário no lado direito, se fosse mantido como no exemplo da LDC. *@
+            </div>
+        </div>
+    </div>
+</section>
+
+@* SECÇÃO DE NOTÍCIAS/PROPOSTAS - Estilo cards como nos exemplos *@
+<section class="news-proposals-section" id="news-proposals-section-id">
+    <div class="container">
+        <h2 class="section-title text-center mb-5">Novidades & <span class="highlight">Oportunidades para a Sua Empresa</span></h2>
+        <div class="row justify-content-center">
+            <div class="col-md-4 mb-4">
+                <div class="card news-card">
+                    <img src="https://placehold.co/600x400/ADD8E6/2E7D32?text=Webinar+CondoVision" class="card-img-top" alt="Webinar sobre gestão de condomínios">
+                    <div class="card-body">
+                        <h5 class="card-title">Webinar: Maximizando a Rentabilidade na Gestão.</h5>
+                        <p class="card-text">Descubra estratégias comprovadas para otimizar os lucros e reduzir custos na administração de condomínios.</p>
+                        <div class="news-card-meta">
+                            <span class="me-3"><i class="far fa-calendar-alt"></i> 24 JUL 2025</span>
+                            <span><i class="fas fa-eye"></i> 1.2K Visualizações</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="#" class="btn btn-link">Saber Mais <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card news-card">
+                    <img src="https://placehold.co/600x400/ADD8E6/2E7D32?text=Novas+Funcionalidades" class="card-img-top" alt="Novas funcionalidades da plataforma CondoVision">
+                    <div class="card-body">
+                        <h5 class="card-title">Lançamento: Módulo de Comunicação Avançada.</h5>
+                        <p class="card-text">Facilite a interação entre administradores, condóminos e fornecedores com nosso novo módulo intuitivo.</p>
+                        <div class="news-card-meta">
+                            <span class="me-3"><i class="far fa-calendar-alt"></i> 15 JUL 2025</span>
+                            <span><i class="fas fa-eye"></i> 850 Visualizações</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="#" class="btn btn-link">Ver Detalhes <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card news-card">
+                    <img src="https://placehold.co/600x400/ADD8E6/2E7D32?text=Estudo+Mercado" class="card-img-top" alt="Estudo de mercado sobre condomínios">
+                    <div class="card-body">
+                        <h5 class="card-title">Estudo de Mercado: Tendências na Gestão Imobiliária.</h5>
+                        <p class="card-text">Análise aprofundada das principais tendências e desafios que moldarão o futuro da gestão de condomínios.</p>
+                        <div class="news-card-meta">
+                            <span class="me-3"><i class="far fa-calendar-alt"></i> 01 JUL 2025</span>
+                            <span><i class="fas fa-eye"></i> 2.1K Visualizações</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="#" class="btn btn-link">Descarregar Estudo <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-5">
+            <a href="#" class="btn btn-outline-primary btn-lg">Ver Todas as Notícias <i class="fas fa-long-arrow-alt-right"></i></a>
+        </div>
+    </div>
+</section>
+
+@* SECÇÃO DE TESTEMUNHOS - Carrossel de testemunhos *@
+<section class="testimonials-section">
+    <div class="container">
+        <h2 class="section-title text-center mb-5">O que <span class="highlight">nossos Parceiros Dizem</span></h2>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div id="testimonialsCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-indicators">
+                        <button type="button" data-bs-target="#testimonialsCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                        <button type="button" data-bs-target="#testimonialsCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                    </div>
+                    <div class="carousel-inner">
+                        <div class="carousel-item active">
+                            <blockquote class="blockquote">
+                                <p class="mb-0">"A CondoVision permitiu-nos otimizar a nossa operação em 40%. A produtividade da nossa equipa disparou e os nossos clientes estão mais satisfeitos do que nunca!"</p>
+                                <footer class="blockquote-footer mt-3">Empresa Alfa, <cite title="Source Title">Gestão de Propriedades</cite></footer>
+                            </blockquote>
+                        </div>
+                        <div class="carousel-item">
+                            <blockquote class="blockquote">
+                                <p class="mb-0">"A transparência e o acesso facilitado a informações através da CondoVision foram um diferencial para os nossos condomínios. É uma ferramenta essencial para o nosso negócio."</p>
+                                <footer class="blockquote-footer mt-3">Soluções Beta, <cite title="Source Title">Administração de Imóveis</cite></footer>
+                            </blockquote>
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#testimonialsCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Anterior</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#testimonialsCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Próximo</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+@section Scripts {
+    <script>
+        // Script para a animação de fade-slide-in
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.fade-slide-in');
+
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
+}

@@ -1,0 +1,78 @@
+﻿@model IEnumerable<CondoVision.Models.FractionOwnerViewModel>
+
+@{
+    ViewData["Title"] = "Gestão de Proprietários de Frações";
+}
+
+<h1>Gestão de Proprietários de Frações</h1>
+
+<p>
+    <a asp-action="Associate" class="btn btn-primary">Associar Nova Fração a Proprietário</a>
+</p>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.UnitNumber)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FractionFloor)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FractionBlock)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CondominiumName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.OwnerFullName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.OwnerEmail)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.WasDeleted)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            @* Apenas mostra associações que NÃO foram eliminadas logicamente *@
+            @if (!item.WasDeleted)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.UnitNumber)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.FractionFloor)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.FractionBlock)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.CondominiumName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.OwnerFullName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.OwnerEmail)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.WasDeleted)
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detalhes</a> |
+                        <a asp-action="Disassociate" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Desassociar</a>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+

@@ -1,0 +1,56 @@
+﻿@model CondoVision.Models.EditProfileViewModel
+
+@{
+    ViewData["Title"] = "Editar Perfil";
+}
+
+<h1>Editar Perfil</h1>
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-controller="Account" asp-action="EditProfile" method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="FullName" class="control-label"></label>
+                <input asp-for="FullName" class="form-control" />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Email" class="control-label"></label>
+                <input asp-for="Email" class="form-control" readonly /> @* Email geralmente não é editável *@
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PhoneNumber" class="control-label"></label>
+                <input asp-for="PhoneNumber" class="form-control" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ImageFile" class="control-label"></label>
+                <input asp-for="ImageFile" type="file" class="form-control" />
+                <span asp-validation-for="ImageFile" class="text-danger"></span>
+                @if (Model.ImageId.HasValue)
+                {
+                    <img src="~/images/users/@(Model.ImageId.Value).png" class="img-thumbnail mt-2" style="max-width: 100px;" />
+                }
+            </div>
+            <div class="form-group mt-3">
+                <input type="submit" value="Guardar Alterações" class="btn btn-primary" />
+            </div>
+        </form>
+        @if (!string.IsNullOrEmpty(ViewBag.Message))
+        {
+            <div class="alert alert-success mt-3">@ViewBag.Message</div>
+        }
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index" asp-controller="Home">Voltar para o Início</a>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "mssql1": {
+      "secretStore": "AzureAppSettings",
+      "type": "mssql.onprem",
+      "connectionId": "ConnectionStrings:DefaultConnection",
+      "dynamicId": null
+    },
+    "storage1": {
+      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('serviceConnectorResourceGroupName')]/providers/Microsoft.Web/sites/CondoVision/providers/Microsoft.ServiceLinker/linkers/BlobBlobConnectionString1_459548F163, /subscriptions/ab2b1890-c9f1-49f2-af98-b03693a1bbeb/resourceGroups/CondoVision/providers/Microsoft.Web/sites/CondoVision/providers/Microsoft.ServiceLinker/linkers/BlobBlobConnectionString1_4B9A82C65F",
+      "secretStore": "AzureAppSettings",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Storage/storageAccounts/condovision",
+      "type": "storage.azure",
+      "connectionId": "Blob:Blob:ConnectionString1",
+      "dynamicId": null
+    }
+  }
+}

@@ -41,12 +41,12 @@ namespace CondoVision.Models.Entities
 
         public async Task<IEnumerable<Condominium>> GetAllCondominiumsWithCompanyAsync()
         {
-            return await this.GetAllWithIncludesAsync(c => c.Company);
+            return await this.GetAllWithIncludesAsync(c => c.Company!);
         }
 
         public async Task<Condominium?> GetCondominiumWithCompanyAsync(int id)
         {
-            return await this.GetByIdWithIncludesAsync(id, c => c.Company);
+            return await this.GetByIdWithIncludesAsync(id, c => c.Company!);
         }
     }
 }

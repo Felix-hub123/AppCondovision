@@ -10,17 +10,17 @@ namespace CondoVision.Models
     public class EditUserViewModel
     {
         [Required]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         [Required(ErrorMessage = "O nome completo é obrigatório.")]
         [StringLength(100, ErrorMessage = "O nome completo não pode exceder 100 caracteres.")]
         [Display(Name = "Nome Completo")]
-        public string FullName { get; set; }
+        public string? FullName { get; set; }
 
         [Required(ErrorMessage = "O email é obrigatório.")]
         [EmailAddress(ErrorMessage = "O email não é válido.")]
         [Display(Name = "Email")]
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         [Required(ErrorMessage = "O contribuinte é obrigatório.")]
         [StringLength(20, ErrorMessage = "O contribuinte não pode exceder 20 caracteres.")]
