@@ -1,44 +1,42 @@
-﻿using CondoVision.Models.Interface;
-using System;
-using System.Collections.Generic;
+﻿using CondoVision.Models.Entities;
+using CondoVision.Models.Interface;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CondoVision.Data.Entities
 {
     public class Condominium : IEntity
     {
+
+
         [Key]
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "O nome do condomínio é obrigatório.")]
-        [StringLength(100, ErrorMessage = "O nome não pode exceder 100 caracteres.")]
+        [Required]
+        [StringLength(255)]
         public string? Name { get; set; }
 
-
-        [Required(ErrorMessage = "A morada do condomínio é obrigatória.")]
-        [StringLength(200, ErrorMessage = "A morada não pode exceder 200 caracteres.")]
+        [StringLength(255)]
         public string? Address { get; set; }
 
-        [Display(Name = "Data de Registo")]
-        [DataType(DataType.Date)]
-        [DisplayFormat(DataFormatString = "{0:yyyy/MM/dd}", ApplyFormatInEditMode = true)]
+        [StringLength(100)]
+        public string? City { get; set; }
+
+        [StringLength(20)]
+        public string? PostalCode { get; set; }
+
+        public int? CompanyId { get; set; }
+
+        public Company? Company { get; set; }
+
         public DateTime RegistrationDate { get; set; }
-
-        public DateTime CreationDate { get; set; }
-
-        public int CompanyId { get; set; }
-
-        [ForeignKey("CompanyId")]
-        public virtual Company? Company { get; set; }
 
         public bool WasDeleted { get; set; }
 
-        public ICollection<User>? Users { get; set; }
+        public ICollection<Unit> Units { get; set; } = new List<Unit>();
 
-        public virtual ICollection<Unit>? Units { get; set; }
+             
+        public ICollection<CondominiumUser>? CondominiumUsers { get; set; }
+      
     }
+
 }

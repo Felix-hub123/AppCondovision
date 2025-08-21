@@ -1,45 +1,75 @@
-﻿@model CondoVision.Data.Entities.Condominium
+﻿@model CondoVision.Models.CreateCondominiumViewModel
 
 @{
-    ViewData["Title"] = "Criar Condomínio";
-   
+    
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-
-
-<section class="content">
-    <div class="container-fluid">
+<section class="content-section py-5">
+    <div class="container">
         <div class="row justify-content-center">
-            <div class="col-lg-6 col-md-8 col-sm-10">
-                <div class="card card-primary card-outline">
-                    <div class="card-header">
-                        <h3 class="card-title"><i class="fas fa-plus-circle"></i> Novo Condomínio</h3>
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow-lg rounded-lg p-4">
+                    <div class="card-header bg-transparent border-0 text-center pb-0">
+                        <h1 class="section-title mb-1">Criar Condomínio</h1>
+                        <p class="section-subtitle">Preencha os dados para adicionar um novo condomínio.</p>
                     </div>
-                    <form asp-action="Create">
-                        <div class="card-body">
+                    <div class="card-body">
+                        @await Html.PartialAsync("_MessagesPartial")
+
+                        <form asp-action="Create" method="post">
                             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                            <div class="form-group">
-                                <label asp-for="Name" class="control-label"></label>
-                                <input asp-for="Name" class="form-control" />
+                            <div class="mb-3">
+                                <label asp-for="Name" class="form-label"></label>
+                                <input asp-for="Name" class="form-control" placeholder="Ex: Edifício Sol Nascente" aria-label="Nome do Condomínio">
                                 <span asp-validation-for="Name" class="text-danger"></span>
+                                <div id="nameHelp" class="form-text">Digite o nome do condomínio.</div>
                             </div>
-                            <div class="form-group">
-                                <label asp-for="Address" class="control-label"></label>
-                                <input asp-for="Address" class="form-control" />
+
+                            <div class="mb-3">
+                                <label asp-for="Address" class="form-label"></label>
+                                <input asp-for="Address" class="form-control" placeholder="Ex: Rua da Felicidade, 123" aria-label="Endereço do Condomínio">
                                 <span asp-validation-for="Address" class="text-danger"></span>
+                                <div id="addressHelp" class="form-text">Digite o endereço completo do condomínio.</div>
                             </div>
-                            <div class="form-group">
-                                <label asp-for="CompanyId" class="control-label">Empresa</label>
-                                <select asp-for="CompanyId" class="form-control" asp-items="@(new SelectList(ViewBag.Companies, "Id", "Name"))"></select>
+
+                            <div class="mb-3">
+                                <label asp-for="City" class="form-label"></label>
+                                <input asp-for="City" class="form-control" placeholder="Ex: Lisboa" aria-label="Cidade">
+                                <span asp-validation-for="City" class="text-danger"></span>
+                                <div id="cityHelp" class="form-text">Digite a cidade do condomínio.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="PostalCode" class="form-label"></label>
+                                <input asp-for="PostalCode" class="form-control" placeholder="Ex: 1000-123" aria-label="Código Postal">
+                                <span asp-validation-for="PostalCode" class="text-danger"></span>
+                                <div id="postalCodeHelp" class="form-text">Digite o código postal do condomínio.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="CompanyId" class="form-label"></label>
+                                <select asp-for="CompanyId" asp-items="Model.Companies ?? Enumerable.Empty<SelectListItem>()" class="form-select" aria-label="Selecione uma Empresa">
+                                    <option value="">-- Selecione uma Empresa --</option>
+                                </select>
                                 <span asp-validation-for="CompanyId" class="text-danger"></span>
+                                <div id="companyHelp" class="form-text">Selecione a empresa associada ao condomínio (opcional).</div>
                             </div>
-                        </div>
-                        <div class="card-footer">
-                            <button type="submit" class="btn btn-primary float-right"><i class="fas fa-save"></i> Criar</button>
-                            <a asp-action="Index" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Voltar à Lista</a>
-                        </div>
-                    </form>
+
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-lg btn-condovision-save">
+                                    <i class="fas fa-plus-circle me-2"></i> Criar Condomínio
+                                </button>
+                                <button type="reset" class="btn btn-lg btn-condovision-clear">
+                                    <i class="fas fa-eraser me-2"></i> Limpar Formulário
+                                </button>
+                                <a asp-action="Index" class="btn btn-lg btn-condovision-back">
+                                    <i class="fas fa-arrow-left me-2"></i> Voltar para a Lista
+                                </a>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -51,4 +81,3 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 }
-

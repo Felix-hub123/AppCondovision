@@ -1,4 +1,5 @@
-﻿using CondoVision.Models.Interface;
+﻿using CondoVision.Models.Entities;
+using CondoVision.Models.Interface;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -32,7 +33,9 @@ namespace CondoVision.Data.Entities
 
         public bool WasDeleted { get; set; }
 
-        public ICollection<User>? Users { get; set; }
-        public ICollection<Condominium>? Condominiums { get; set; }
+        public ICollection<Condominium> Condominiums { get; set; } = new List<Condominium>();
+
+      
+
     }
 }

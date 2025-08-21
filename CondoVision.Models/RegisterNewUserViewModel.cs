@@ -9,27 +9,27 @@ namespace CondoVision.Models
 {
     public class RegisterNewUserViewModel
     {
-        [Required(ErrorMessage = "O campo {0} é obrigatório.")]
+        [Required(ErrorMessage = "O nome completo é obrigatório.")]
         [Display(Name = "Nome Completo")]
         public string? FullName { get; set; }
 
-        [Required(ErrorMessage = "O campo {0} é obrigatório.")]
-        [EmailAddress(ErrorMessage = "O campo {0} não é um endereço de e-mail válido.")]
-        [Display(Name = "E-mail")]
+        [Required(ErrorMessage = "O nome de usuário é obrigatório.")]
+        [EmailAddress(ErrorMessage = "E-mail inválido.")]
+        [Display(Name = "E-mail / Nome de Usuário")]
         public string? Username { get; set; }
 
-        [Required(ErrorMessage = "O campo {0} é obrigatório.")]
-        [MinLength(6, ErrorMessage = "O campo {0} deve ter pelo menos {1} caracteres.")]
+        [Required(ErrorMessage = "A senha é obrigatória.")]
         [DataType(DataType.Password)]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "A senha deve ter pelo menos 6 caracteres.")]
+        [Display(Name = "Senha")]
         public string? Password { get; set; }
 
-        [Required(ErrorMessage = "O campo {0} é obrigatório.")]
-        [Compare("Password", ErrorMessage = "A password e a confirmação não coincidem.")]
         [DataType(DataType.Password)]
-        [Display(Name = "Confirmar Password")]
+        [Compare("Password", ErrorMessage = "As senhas não coincidem.")]
+        [Display(Name = "Confirmar Senha")]
         public string? ConfirmPassword { get; set; }
 
-        [Display(Name = "Número de Telefone")]
+        [Display(Name = "Número de Telefone")] 
         public string? PhoneNumber { get; set; }
 
     }

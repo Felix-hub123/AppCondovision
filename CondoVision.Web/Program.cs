@@ -1,17 +1,15 @@
+
 using CondoVision.Data;
 using CondoVision.Data.Entities;
 using CondoVision.Data.Helper;
 using CondoVision.Models.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using CondoVision.Models.Interface;
-using Microsoft.Extensions.Azure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
-
 
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -24,25 +22,50 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = true;
     options.Password.RequireLowercase = true;
+    options.Tokens.AuthenticatorTokenProvider = TokenOptions.DefaultAuthenticatorProvider;
+
 })
 .AddRoles<IdentityRole>()
 .AddEntityFrameworkStores<DataContext>()
 .AddDefaultTokenProviders();
+
+// Configuração da autenticação (Google)
+builder.Services.AddAuthentication()
+    .AddGoogle(options =>
+    {
+        var clientId = builder.Configuration["Google:ClientId"];
+        if (string.IsNullOrEmpty(clientId))
+        {
+            throw new ArgumentNullException("Google:ClientId não foi configurado em appsettings.json.");
+        }
+        options.ClientId = clientId;
+
+        var clientSecret = builder.Configuration["Google:ClientSecret"];
+        if (string.IsNullOrEmpty(clientSecret))
+        {
+            throw new ArgumentNullException("Google:ClientSecret não foi configurado em appsettings.json.");
+        }
+        options.ClientSecret = clientSecret;
+    })
+    .AddCookie(options =>
+    {
+
+        options.ExpireTimeSpan = TimeSpan.FromDays(30); // 30 dias
+        options.SlidingExpiration = true;
+    });
+
 builder.Services.AddScoped<IUserHelper, UserHelper>();
+builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<ICondominiumRepository, CondominiumRepository>();
-builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IConverterHelper, ConverterHelper>();
-builder.Services.AddScoped<IUserHelper, UserHelper>();
 builder.Services.AddScoped<IEMailHelper, EMailHelper>();
 builder.Services.AddScoped<IBlobHelper, BlobHelper>();
-builder.Services.AddScoped<IFractionRepository, FractionRepository>();
-builder.Services.AddScoped<IFractionOwnerRepository, FractionOwnerRepository>();
-builder.Services.AddControllersWithViews();
 builder.Services.AddTransient<SeedDb>();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configuração do pipeline HTTP
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -50,30 +73,29 @@ if (!app.Environment.IsDevelopment())
 }
 else
 {
-    // Apenas para desenvolvimento, crie e seede a base de dados
     app.UseDeveloperExceptionPage();
-    app.UseMigrationsEndPoint(); // Útil para aplicar migrações automaticamente em dev
+    app.UseMigrationsEndPoint();
 
-    // Chamar o Seeder na inicialização da aplicação
+    // Aplicar migrações e executar o seeder no ambiente de desenvolvimento
     using (var scope = app.Services.CreateScope())
     {
-        var seeder = scope.ServiceProvider.GetRequiredService<SeedDb>();
+        var services = scope.ServiceProvider;
+        var context = services.GetRequiredService<DataContext>();
+        context.Database.Migrate();
+        var seeder = services.GetRequiredService<SeedDb>();
         await seeder.SeedAsync();
     }
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles(); // ESSENCIAL: Permite servir ficheiros CSS, JS, imagens
+app.UseStaticFiles();
 app.UseRouting();
 
-app.UseAuthentication(); // Deve vir antes de UseAuthorization
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
-// Remova ou comente esta linha se não for uma SPA
-// app.MapFallbackToFile("index.html"); 
 
 app.Run();

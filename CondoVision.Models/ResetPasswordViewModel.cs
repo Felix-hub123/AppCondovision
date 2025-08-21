@@ -1,27 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace CondoVision.Models
 {
     public class ResetPasswordViewModel
     {
-        [Required(ErrorMessage = "O campo {0} é obrigatório.")]
-        [DataType(DataType.Password)]
-        [Display(Name = "Nova Password")]
+        [Required]
+        public string? UserId { get; set; }
+
+        [Required]
+        [Display(Name = "Novo Password")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "O password deve ter pelo menos 6 caracteres.")]
         public string? NewPassword { get; set; }
 
-        [Required(ErrorMessage = "O campo {0} é obrigatório.")]
-        [DataType(DataType.Password)]
-        [Compare("NewPassword", ErrorMessage = "A nova password e a confirmação não coincidem.")]
-        [Display(Name = "Confirmar Nova Password")]
+        [Required]
+        [Display(Name = "Confirmar Password")]
+        [Compare("NewPassword", ErrorMessage = "Os passwords não coincidem.")]
         public string? ConfirmPassword { get; set; }
 
-        public string? UserId { get; set; }
+        [Required]
         public string? Token { get; set; }
-        public string? Email { get; set; }
+
+        [Display(Name = "Número de Telefone")]
+        [Phone]
+        public string? PhoneNumber { get; set; }
     }
 }

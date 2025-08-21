@@ -1,5 +1,6 @@
 ﻿using CondoVision.Data.Entities;
 using CondoVision.Data.Helper;
+using CondoVision.Models.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -28,16 +29,25 @@ namespace CondoVision.Data
 
         public async Task SeedAsync()
         {
-            await _context.Database.EnsureCreatedAsync();
-            await CheckRolesAsync();
-            await CheckCompanyAsync();
-            await CheckCondominiumAsync();
-            await SeedUsersAsync();
+            try
+            {
+                await _context.Database.MigrateAsync();
+                await CheckRolesAsync();
+                await CheckCompanyAsync();
+                await CheckCondominiumAsync();
+                await SeedUsersAsync();
+                await SeedCondominiumUsersAndUnitsAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro durante o processo de seeding.");
+                throw;
+            }
         }
 
         private async Task CheckRolesAsync()
         {
-            var roles = new[] { "CompanyAdmin", "CondoManager", "CondoOwner", "Employee" };
+            var roles = new[] { "CompanyAdmin", "CondoManager", "CondoOwner", "Employee", "Condómino" };
             foreach (var role in roles)
             {
                 if (!await _roleManager.RoleExistsAsync(role))
@@ -49,7 +59,6 @@ namespace CondoVision.Data
             _logger.LogInformation("Roles verificadas/criadas com sucesso");
         }
 
-
         private async Task CheckCompanyAsync()
         {
             if (!_context.Companies.Any())
@@ -58,8 +67,6 @@ namespace CondoVision.Data
                 {
                     Name = "Gestão Exemplo Lda",
                     CompanyTaxId = "123456789",
-                    Address = "Rua Exemplo, 123, Lisboa",
-                    Contact = "geral@gestaoexemplo.pt",
                     CreationDate = DateTime.UtcNow,
                     WasDeleted = false
                 };
@@ -68,7 +75,6 @@ namespace CondoVision.Data
                 _logger.LogInformation("Empresa padrão criada com sucesso");
             }
         }
-
 
         private async Task CheckCondominiumAsync()
         {
@@ -85,6 +91,8 @@ namespace CondoVision.Data
                 {
                     Name = "Condomínio Central",
                     Address = "Avenida Principal, 456, Porto",
+                    City = "Porto",
+                    PostalCode = "4000-002",
                     CompanyId = company.Id,
                     RegistrationDate = DateTime.UtcNow,
                     WasDeleted = false
@@ -95,10 +103,7 @@ namespace CondoVision.Data
             }
         }
 
-        /// <summary>
-        /// Método genérico para garantir que um utilizador existe e tem a role especificada.
-        /// </summary>
-        private async Task<User?> EnsureUserWithRoleAsync(string email, string password, string roleName, string fullName, string taxId, DateTime dateOfBirth, string address, bool emailConfirmed, bool wasDeleted)
+        private async Task<User?> EnsureUserWithRoleAsync(string email, string password, string roleName, string fullName, bool emailConfirmed, bool wasDeleted, string phoneNumber)
         {
             var company = await _context.Companies.FirstOrDefaultAsync();
             if (company == null)
@@ -115,12 +120,10 @@ namespace CondoVision.Data
                     FullName = fullName,
                     Email = email,
                     UserName = email,
-                    TaxId = taxId,
-                    DateOfBirth = dateOfBirth,
-                    Address = address,
-                    CompanyId = company.Id,
                     EmailConfirmed = emailConfirmed,
-                    WasDeleted = wasDeleted
+                    WasDeleted = wasDeleted,
+                    UserType = roleName,
+                    PhoneNumber = phoneNumber // Uso correto do parâmetro
                 };
 
                 var result = await _userHelper.AddUserAsync(user, password);
@@ -145,27 +148,105 @@ namespace CondoVision.Data
                     await _userHelper.AddUserToRoleAsync(user, roleName);
                     _logger.LogInformation($"Utilizador '{fullName}' ({email}) adicionado à role '{roleName}'.");
                 }
+                if (string.IsNullOrEmpty(user.PhoneNumber))
+                {
+                    user.PhoneNumber = phoneNumber; // Uso correto do parâmetro
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation($"Número de telefone '{phoneNumber}' adicionado ao utilizador '{fullName}' ({email}).");
+                }
                 return user;
             }
         }
 
-
-        /// <summary>
-        /// Método genérico para garantir que um utilizador existe e tem a role especificada.
-        /// </summary>
-
         private async Task SeedUsersAsync()
         {
-            // Utilizadores de exemplo com as roles e dados definidos no PDF
-            await EnsureUserWithRoleAsync("admin@condovision.pt", "Admin123!", "CompanyAdmin", "Administrador Sistema", "123456789", new DateTime(1980, 1, 1), "Rua Admin, 1, Lisboa", true, false);
-            await EnsureUserWithRoleAsync("condomanager@condovision.pt", "Manager123!", "CondoManager", "Gestor Condomínio", "987654321", new DateTime(1985, 5, 10), "Rua do Gestor, 10, Porto", true, false);
-            await EnsureUserWithRoleAsync("condoowner@condovision.pt", "Owner123!", "CondoOwner", "Proprietário Condomínio", "112233445", new DateTime(1970, 11, 20), "Rua do Proprietário, 5, Lisboa", true, false);
-            await EnsureUserWithRoleAsync("employee@condovision.pt", "Employee123!", "Employee", "Colaborador Empresa", "554433221", new DateTime(1992, 3, 15), "Rua do Colaborador, 22, Coimbra", true, false);
+            await EnsureUserWithRoleAsync("admin@condovision.pt", "Admin123!", "CompanyAdmin", "Administrador Sistema", true, false, "+351912345678");
+            await EnsureUserWithRoleAsync("condomanager@condovision.pt", "Manager123!", "CondoManager", "Gestor Condomínio", true, false, "+351923456789");
+            await EnsureUserWithRoleAsync("condoowner@condovision.pt", "Owner123!", "CondoOwner", "Proprietário Condomínio", true, false, "+351934567890");
+            await EnsureUserWithRoleAsync("employee@condovision.pt", "Employee123!", "Employee", "Colaborador Empresa", true, false, "+351945678901");
+            await EnsureUserWithRoleAsync("condomino@condovision.pt", "Condo123!", "Condómino", "Residente Condomínio", true, false, "+351956789012");
+            await EnsureUserWithRoleAsync("testuser@condovision.pt", "Test123!", "Condómino", "Usuário Teste", true, false, "+351967890123");
+        }
+
+        private async Task SeedCondominiumUsersAndUnitsAsync()
+        {
+            var company = await _context.Companies.FirstOrDefaultAsync();
+            if (company == null)
+            {
+                _logger.LogWarning("Nenhuma empresa encontrada. Não será possível associar gestores ou unidades.");
+                return;
+            }
+
+            var condominiums = await _context.Condominiums.ToListAsync();
+            if (!condominiums.Any())
+            {
+                _logger.LogWarning("Nenhum condomínio encontrado. Não será possível associar gestores ou unidades.");
+                return;
+            }
+
+            var manager = await _userHelper.GetUserByEmailAsync("condomanager@condovision.pt");
+            var owner = await _userHelper.GetUserByEmailAsync("condoowner@condovision.pt");
+            var condomini = await _userHelper.GetUserByEmailAsync("condomino@condovision.pt");
+
+            if (manager != null && owner != null && condomini != null)
+            {
+                if (!await _context.CondominiumUsers.AnyAsync(cu => cu.CondominiumId == condominiums[0].Id && cu.UserId == manager.Id))
+                {
+                    var condoManager = new CondominiumUser
+                    {
+                        CondominiumId = condominiums[0].Id,
+                        UserId = manager.Id,
+                        WasDeleted = false
+                    };
+                    _context.CondominiumUsers.Add(condoManager);
+                }
+                else
+                {
+                    _logger.LogInformation($"Associação entre Condomínio {condominiums[0].Id} e Gestor {manager.Id} já existe.");
+                }
+
+                if (!await _context.CondominiumUsers.AnyAsync(cu => cu.CondominiumId == condominiums[0].Id && cu.UserId == condomini.Id))
+                {
+                    var condoUser = new CondominiumUser
+                    {
+                        CondominiumId = condominiums[0].Id,
+                        UserId = condomini.Id,
+                        WasDeleted = false
+                    };
+                    _context.CondominiumUsers.Add(condoUser);
+                }
+                else
+                {
+                    _logger.LogInformation($"Associação entre Condomínio {condominiums[0].Id} e Condómino {condomini.Id} já existe.");
+                }
+
+                var unit1 = new Unit
+                {
+                    UnitName = "A",
+                    Permillage = 50.00m,
+                    CondominiumId = condominiums[0].Id,
+                    OwnerId = owner.Id,
+                    WasDeleted = false
+                };
+                var unit2 = new Unit
+                {
+                    UnitName = "B",
+                    Permillage = 50.00m,
+                    CondominiumId = condominiums[0].Id,
+                    OwnerId = owner.Id,
+                    WasDeleted = false
+                };
+                _context.Units.AddRange(unit1, unit2);
+
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Gestor, condómino e unidades associados ao condomínio com sucesso.");
+            }
         }
     }
-
-
 }
+
+
+
 
 
 

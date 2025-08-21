@@ -1,6 +1,7 @@
 ﻿using CondoVision.Data.Entities;
 using CondoVision.Models;
 using CondoVision.Models.Entities;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,16 @@ namespace CondoVision.Data.Helper
 {
     public class ConverterHelper : IConverterHelper
     {
+
+        private readonly ICompanyRepository _companyRepository;
+
+        public ConverterHelper(ICompanyRepository companyRepository)
+        {
+            _companyRepository = companyRepository;
+        }
+        /// <summary>
+        /// Converte um User para EditUserViewModel.
+        /// </summary>
         public EditUserViewModel ToEditUserViewModel(User user, string roleName)
         {
             return new EditUserViewModel
@@ -18,14 +29,13 @@ namespace CondoVision.Data.Helper
                 Id = user.Id,
                 FullName = user.FullName,
                 Email = user.Email,
-                TaxId = user.TaxId,
-                Address = user.Address,
-                DateOfBirth = user.DateOfBirth,
-                CompanyId = user.CompanyId,
                 RoleName = roleName
             };
         }
 
+        /// <summary>
+        /// Converte um CreateUserViewModel para User.
+        /// </summary>
         public User ToUser(CreateUserViewModel model, int companyId)
         {
             return new User
@@ -33,11 +43,11 @@ namespace CondoVision.Data.Helper
                 FullName = model.FullName,
                 Email = model.Email,
                 UserName = model.Email,
+                WasDeleted = false,
+                CompanyId = companyId, 
                 TaxId = model.TaxId,
                 DateOfBirth = model.DateOfBirth,
-                Address = model.Address,
-                CompanyId = companyId,
-                WasDeleted = false
+                Address = model.Address
             };
         }
 
@@ -47,11 +57,6 @@ namespace CondoVision.Data.Helper
             user.FullName = model.FullName;
             user.Email = model.Email;
             user.UserName = model.Email; 
-            user.TaxId = model.TaxId;
-            user.Address = model.Address;
-            user.DateOfBirth = model.DateOfBirth;
-            user.CompanyId = model.CompanyId;
-
             return user;
         }
         public User ToUser(EditUserViewModel model)
@@ -62,12 +67,58 @@ namespace CondoVision.Data.Helper
                 FullName = model.FullName,
                 Email = model.Email,
                 UserName = model.Email,
-                TaxId = model.TaxId,
-                DateOfBirth = model.DateOfBirth,
-                Address = model.Address,
-                CompanyId = model.CompanyId,
                 WasDeleted = false 
             };
+        }
+
+        /// <summary>
+        /// Converte um CompanyViewModel para Company.
+        /// </summary>
+        public Company ToCompany(CompanyViewModel model)
+        {
+            return new Company
+            {
+                Id = model.Id,
+                Name = model.Name,
+                CompanyTaxId = model.CompanyTaxId,
+                Address = model.Address,
+                Contact = model.Contact,
+                LogoId = model.LogoId,
+                CreationDate = model.CreationDate,
+                WasDeleted = model.WasDeleted
+            };
+        }
+
+        /// <summary>
+        /// Converte um Company para CompanyViewModel.
+        /// </summary>
+        public CompanyViewModel ToCompanyViewModel(Company company)
+        {
+            return new CompanyViewModel
+            {
+                Id = company.Id,
+                Name = company.Name,
+                CompanyTaxId = company.CompanyTaxId,
+                Address = company.Address,
+                Contact = company.Contact,
+                LogoId = company.LogoId,
+                CreationDate = company.CreationDate,
+                WasDeleted = company.WasDeleted
+            };
+        }
+
+        /// <summary>
+        /// Atualiza um Company existente com dados de CompanyViewModel.
+        /// </summary>
+        public void UpdateCompany(Company company, CompanyViewModel model)
+        {
+            company.Name = model.Name;
+            company.CompanyTaxId = model.CompanyTaxId;
+            company.Address = model.Address;
+            company.Contact = model.Contact;
+            company.LogoId = model.LogoId;
+            company.CreationDate = model.CreationDate; // Pode ser mantido original no controller
+            company.WasDeleted = model.WasDeleted;
         }
 
         /// <summary>
@@ -84,10 +135,6 @@ namespace CondoVision.Data.Helper
                 PhoneNumber = model.PhoneNumber,
 
                 // Outras propriedades com valores padrão para um novo registo
-                TaxId = string.Empty,       // Pode ser preenchido mais tarde ou ser opcional no registo
-                DateOfBirth = DateTime.MinValue, // Pode ser preenchido mais tarde ou ser opcional
-                Address = string.Empty,     // Pode ser preenchido mais tarde ou ser opcional
-                CompanyId = 0,              // Será associado por um administrador ou durante o seed
                 EmailConfirmed = false,     // Por padrão, não confirmado até o utilizador clicar no link
                 WasDeleted = false          // Por padrão, não eliminado
             };
@@ -126,104 +173,89 @@ namespace CondoVision.Data.Helper
             return existingUser;
         }
 
-        public Fraction ToFraction(CreateFractionViewModel model)
+      
+
+        public CondominiumViewModel ToCondominiumViewModel(Condominium condominium)
         {
-            return new Fraction
+            return new CondominiumViewModel
             {
-                Id = 0, 
-                UnitNumber = model.UnitNumber,
-                Floor = model.Floor,
-                Block = model.Block,
-                Area = model.Area,
-                Permilage = model.Permilage,
-                CondominiumId = model.CondominiumId,
-                WasDeleted = false 
+                Id = condominium.Id,
+                Name = condominium.Name,
+                Address = condominium.Address,
+                City = condominium.City,
+                PostalCode = condominium.PostalCode,
+                CompanyId = condominium.CompanyId,
+                RegistrationDate = condominium.RegistrationDate,
+                WasDeleted = condominium.WasDeleted
             };
         }
 
-        public Fraction ToFraction(EditFractionViewModel model)
+        /// <summary>
+        /// Converte um CreateCondominiumViewModel para uma entidade Condominium.
+        /// </summary>
+        public Condominium ToCondominium(CondominiumViewModel viewModel)
         {
-            return new Fraction
+            return new Condominium
             {
-                Id = model.Id,
-                UnitNumber = model.UnitNumber,
-                Floor = model.Floor,
-                Block = model.Block,
-                Area = model.Area,
-                Permilage = model.Permilage,
-                CondominiumId = model.CondominiumId,
-                WasDeleted = model.WasDeleted 
-            };
-        }
-
-        public FractionViewModel ToFractionViewModel(Fraction fraction)
-        {
-            return new FractionViewModel
-            {
-                Id = fraction.Id,
-                UnitNumber = fraction.UnitNumber,
-                Floor = fraction.Floor,
-                Block = fraction.Block,
-                Area = fraction.Area,
-                Permilage = fraction.Permilage,
-                CondominiumId = fraction.CondominiumId,
-                CondominiumName = fraction.Condominium?.Name, 
-                WasDeleted = fraction.WasDeleted
-            };
-        }
-
-        public EditFractionViewModel ToEditFractionViewModel(Fraction fraction)
-        {
-            return new EditFractionViewModel
-            {
-                Id = fraction.Id,
-                UnitNumber = fraction.UnitNumber,
-                Floor = fraction.Floor,
-                Block = fraction.Block,
-                Area = fraction.Area,
-                Permilage = fraction.Permilage,
-                CondominiumId = fraction.CondominiumId,
-                WasDeleted = fraction.WasDeleted,
-             
+                Id = viewModel.Id,
+                Name = viewModel.Name,
+                Address = viewModel.Address,
+                City = viewModel.City,
+                PostalCode = viewModel.PostalCode,
+                CompanyId = viewModel.CompanyId,
+                RegistrationDate = viewModel.RegistrationDate,
+                WasDeleted = viewModel.WasDeleted
             };
         }
 
 
-        public FractionOwnerViewModel ToFractionOwnerViewModel(FractionOwner fractionOwner)
+        public Condominium ToCondominium(CreateCondominiumViewModel model)
         {
-            return new FractionOwnerViewModel
+            return new Condominium
             {
-                Id = fractionOwner.Id,
-                UnitNumber = fractionOwner.Fraction?.UnitNumber ?? "N/A",
-                FractionFloor = fractionOwner.Fraction?.Floor,
-                FractionBlock = fractionOwner.Fraction?.Block,
-                CondominiumName = fractionOwner.Fraction?.Condominium?.Name ?? "N/A", 
-                UserId = fractionOwner.UserId,
-                OwnerFullName = fractionOwner.User?.FullName ?? "N/A", 
-                OwnerEmail = fractionOwner.User?.Email ?? "N/A",
-                WasDeleted = fractionOwner.WasDeleted
+                Name = model.Name,
+                Address = model.Address,
+                City = model.City,
+                PostalCode = model.PostalCode,
+                CompanyId = model.CompanyId,
+                RegistrationDate = DateTime.UtcNow,
+                WasDeleted = false
             };
         }
 
-        public FractionOwner ToFractionOwner(AssociateFractionOwnerViewModel model)
+        public IEnumerable<CondominiumViewModel> ToCondominiumViewModelList(IEnumerable<Condominium> condominiums)
         {
-            return new FractionOwner
+            return condominiums.Select(c => ToCondominiumViewModel(c)).ToList();
+        }
+
+        /// <summary>
+        /// Atualiza uma entidade Condominium existente com dados de um EditCondominiumViewModel.
+        /// </summary>
+
+
+        public async Task<EditCondominiumViewModel> ToEditCondominiumViewModelAsync(Condominium condominium)
+        {
+            var model = new EditCondominiumViewModel
             {
-                FractionId = model.FractionId,
-                UserId = model.UserId ?? string.Empty,
-                WasDeleted = false 
+                Id = condominium.Id,
+                Name = condominium.Name,
+                Address = condominium.Address,
+                City = condominium.City,
+                PostalCode = condominium.PostalCode,
+                CompanyId = condominium.CompanyId,
+                RegistrationDate = condominium.RegistrationDate,
+                WasDeleted = condominium.WasDeleted,
+                Companies = await GetCompaniesSelectList()
             };
+            return model;
         }
 
-
-        public FractionOwner ToFractionOwner(AssociateFractionOwnerViewModel model, FractionOwner existingFractionOwner)
+        private async Task<IEnumerable<SelectListItem>> GetCompaniesSelectList()
         {
-           
-            existingFractionOwner.FractionId = model.FractionId;
-            existingFractionOwner.UserId = model.UserId ?? string.Empty;
-            // existingFractionOwner.WasDeleted = model.WasDeleted; // WasDeleted deve ser gerido pela lógica de Delete
-
-            return existingFractionOwner;
+            return (await _companyRepository.GetAllCompaniesAsync())
+                .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name });
         }
+
+       
     }
 }

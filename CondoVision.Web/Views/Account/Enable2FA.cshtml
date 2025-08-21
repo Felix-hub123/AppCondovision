@@ -1,0 +1,21 @@
+﻿@model CondoVision.Models.Enable2FAViewModel
+
+@{
+    ViewData["Title"] = "Habilitar 2FA";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Habilitar Autenticação de Dois Fatores</h1>
+
+<p>Para habilitar o 2FA, escaneie o código QR com um app de autenticação (ex.: Google Authenticator).</p>
+
+<img src="@Model.QRCodeImageUrl" alt="QR Code for 2FA" />
+
+<form asp-action="Enable2FA" method="post">
+    <div class="form-group">
+        <label asp-for="Code" class="control-label"></label>
+        <input asp-for="Code" class="form-control" />
+        <span asp-validation-for="Code" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Habilitar</button>
+</form>

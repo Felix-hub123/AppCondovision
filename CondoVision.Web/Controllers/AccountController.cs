@@ -2,395 +2,338 @@
 using CondoVision.Data.Helper;
 using CondoVision.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace CondoVision.Web.Controllers
 {
+    [AllowAnonymous]
     public class AccountController : Controller
     {
-
-        private readonly IUserHelper _userHelper;
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IEMailHelper _mailHelper;
-        private readonly IConfiguration _configuration;
-        private readonly IBlobHelper _blobHelper;
 
-        public AccountController(
-            IUserHelper userHelper,
-            IEMailHelper mailHelper,
-            IConfiguration configuration,
-            IBlobHelper blobHelper)
+        public AccountController(UserManager<User> userManager, 
+            SignInManager<User> signInManager,
+            RoleManager<IdentityRole> roleManager,
+            IEMailHelper mailHelper)
         {
-            _userHelper = userHelper;
+            _userManager = userManager;
+            _signInManager = signInManager;
+            _roleManager = roleManager;
             _mailHelper = mailHelper;
-            _configuration = configuration;
-            _blobHelper = blobHelper;
         }
 
         // GET: Login
-        [AllowAnonymous]
         public IActionResult Login()
         {
-            if (User.Identity!.IsAuthenticated)
-            {
-                return RedirectToAction("Index", "Home");
-            }
             return View();
         }
 
-        // POST: Login
         [HttpPost]
-        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return View(model);
-            }
-
-            var result = await _userHelper.LoginAsync(model);
-
-            if (result.Succeeded)
-            {
-                if (this.Request.Query.Keys.Contains("ReturnUrl"))
+                if (string.IsNullOrEmpty(model.Email))
                 {
-        
-                    var returnUrl = this.Request.Query["ReturnUrl"].FirstOrDefault();
-
-                    if (!string.IsNullOrEmpty(returnUrl))
-                    {
-            
-                        return Redirect(returnUrl);
-                    }
+                    ModelState.AddModelError(string.Empty, "O e-mail é obrigatório.");
+                    return View(model);
+                }
+                if (string.IsNullOrEmpty(model.Password))
+                {
+                    ModelState.AddModelError(string.Empty, "A senha é obrigatória.");
+                    return View(model);
                 }
 
-                return RedirectToAction("Index", "Home");
+                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+                if (result.Succeeded)
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+                ModelState.AddModelError(string.Empty, "E-mail ou senha inválidos.");
             }
-
-            ModelState.AddModelError(string.Empty, "Falha no login!");
             return View(model);
         }
 
-        // Logout
-        [Authorize]
-        public async Task<IActionResult> Logout()
-        {
-            await _userHelper.LogoutAsync();
-            return RedirectToAction("Index", "Home");
-        }
-
-        [HttpGet]
+        // GET: Register
         public IActionResult Register()
         {
             return View();
         }
 
-        // POST: Register
         [HttpPost]
-        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterNewUserViewModel model)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return View(model);
-            }
-
-        
-            var userExists = await _userHelper.GetUserByEmailAsync(model.Username!);
-            if (userExists != null)
-            {
-                ModelState.AddModelError("Username", "Email já está registado.");
-                return View(model);
-            }
-
-            var user = new User
-            {
-                FullName = model.FullName,
-                Email = model.Username,
-                UserName = model.Username,
-                PhoneNumber = model.PhoneNumber
-            };
-
-      
-            var result = await _userHelper.AddUserAsync(user, model.Password!);
-            if (!result.Succeeded)
-            {
-                foreach (var error in result.Errors)
+                if (string.IsNullOrEmpty(model.Username))
                 {
-                    ModelState.AddModelError(string.Empty, error.Description);
+                    ModelState.AddModelError(string.Empty, "O nome de usuário é obrigatório.");
+                    return View(model);
                 }
-                return View(model);
+                if (string.IsNullOrEmpty(model.Password))
+                {
+                    ModelState.AddModelError(string.Empty, "A senha é obrigatória.");
+                    return View(model);
+                }
+
+                var user = new User
+                {
+                    UserName = model.Username,
+                    Email = model.Username,
+                    FullName = model.FullName,
+                    WasDeleted = false
+                };
+                var result = await _userManager.CreateAsync(user, model.Password);
+                if (result.Succeeded)
+                {
+                    if (await _roleManager.RoleExistsAsync("Condómino"))
+                    {
+                        await _userManager.AddToRoleAsync(user, "Condómino");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, "Role 'Condómino' não encontrada. Contate o administrador.");
+                        return View(model);
+                    }
+                    return RedirectToAction("Login");
+                }
+                AddErrors(result);
             }
-
-            await _userHelper.AddUserToRoleAsync(user, "User");
-
-            var token = await _userHelper.GenerateEmailConfirmationTokenAsync(user);
-            var encodedToken = System.Net.WebUtility.UrlEncode(token);
-
-            var tokenLink = Url.Action("ConfirmEmail", "Account", new
-            {
-                userId = user.Id,
-                token = encodedToken
-            }, protocol: HttpContext.Request.Scheme);
-
-
-            var response = await _mailHelper.SendEmailAsync(model.Username!, "Confirmação de Email",
-                $"<h1>Confirmação de Email</h1> Para ativar sua conta, clique aqui: <a href='{tokenLink}'>Confirmar Email</a>");
-
-            if (response)
-            {
-                ViewBag.Message = "Utilizador criado com sucesso! Verifique o seu email para confirmar a conta.";
-            }
-            else
-            {
-                ModelState.AddModelError(string.Empty, "Não foi possível enviar o email de confirmação.");
-            }
-
             return View(model);
         }
 
-
-        // GET: ConfirmEmail
-        [AllowAnonymous]
-        public async Task<IActionResult> ConfirmEmail(string userId, string token)
+        // Logout
+        [HttpPost]
+        public async Task<IActionResult> Logout()
         {
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
-            {
-                return NotFound();
-            }
-
-            var user = await _userHelper.GetUserByIdAsync(userId);
-            if (user == null)
-            {
-                ViewBag.Message = "Utilizador não encontrado.";
-                return View();
-            }
-
-            var decodedToken = System.Net.WebUtility.UrlDecode(token);
-            var result = await _userHelper.ConfirmEmailAsync(user, decodedToken);
-
-            if (result.Succeeded)
-            {
-                await _userHelper.LogoutAsync();
-                TempData["SuccessMessage"] = "Email confirmado com sucesso. Pode agora iniciar sessão.";
-                return RedirectToAction("Login", "Account");
-            }
-            else
-            {
-                ViewBag.Message = "Erro ao confirmar o email. O token pode ser inválido ou expirado.";
-                return View();
-            }
+            await _signInManager.SignOutAsync();
+            return RedirectToAction("Index", "Home");
         }
 
+        [Authorize(Roles = "AdminCompany")]
+        public async Task<IActionResult> ManageUsers()
+        {
+            var users = await _userManager.Users.ToListAsync();
+            return View(users);
+        }
 
-        // GET: RecoverPassword
-        [AllowAnonymous]
-        public IActionResult RecoverPassword()
+        // GET: ForgotPassword
+        public IActionResult ForgotPassword()
         {
             return View();
         }
 
         [HttpPost]
-        [AllowAnonymous]
-        public async Task<IActionResult> RecoverPassword(RecoverPasswordViewModel model)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return View(model);
-            }
-
-  
-            var user = await _userHelper.GetUserByEmailAsync(model.Email!);
-            if (user != null)
-            {
-                var token = await _userHelper.GeneratePasswordResetTokenAsync(user);
-                var encodedToken = System.Net.WebUtility.UrlEncode(token);
-
-                var link = Url.Action("ResetPassword", "Account", new
+                if (string.IsNullOrEmpty(model.Email))
                 {
-                    userId = user.Id,
-                    token = encodedToken,
-                    email = user.Email
-                }, protocol: HttpContext.Request.Scheme);
-
-       
-                var emailResponse = await _mailHelper.SendEmailAsync(model.Email!, "Password Reset",
-                    $"Para redefinir a sua password, clique aqui: <a href='{link}'>Redefinir Password</a>");
-
-                if (!emailResponse)
-                {
-                    ModelState.AddModelError(string.Empty, "Falha ao enviar o e-mail. Por favor, tente novamente mais tarde.");
+                    ModelState.AddModelError(string.Empty, "O e-mail é obrigatório.");
                     return View(model);
                 }
-            }
 
-            ViewBag.Message = "Instruções para recuperar sua senha foram enviadas, caso o e-mail exista em nosso sistema.";
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user != null && await _userManager.IsEmailConfirmedAsync(user))
+                {
+                    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                    var link = Url.Action("ResetPassword", "Account", new { token, email = user.Email }, protocol: HttpContext.Request.Scheme);
+                    if (string.IsNullOrEmpty(link))
+                    {
+                        ModelState.AddModelError(string.Empty, "Falha ao gerar o link de redefinição.");
+                        return View(model);
+                    }
+                    var body = $"<a href='{link}'>Clique aqui para redefinir sua senha</a>";
+                    if (string.IsNullOrEmpty(user.Email))
+                    {
+                        ModelState.AddModelError(string.Empty, "E-mail do usuário não configurado.");
+                        return View(model);
+                    }
+                    await _mailHelper.SendEmailAsync(user.Email, "Redefinição de Senha", body);
+                    return RedirectToAction("ForgotPasswordConfirmation");
+                }
+                ModelState.AddModelError(string.Empty, "E-mail não encontrado ou não confirmado.");
+            }
             return View(model);
         }
 
-        [HttpGet]
-        [AllowAnonymous]
-        public IActionResult ResetPassword(string userId, string token, string email)
+        // GET: ForgotPasswordConfirmation
+        public IActionResult ForgotPasswordConfirmation()
         {
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token) || string.IsNullOrEmpty(email))
-            {
-                return RedirectToAction("Login");
-            }
+            return View();
+        }
 
-            var model = new ResetPasswordViewModel
-            {
-                UserId = userId,
-                Token = token,
-                Email = email
-            };
+        // GET: ResetPassword
+        public IActionResult ResetPassword(string token, string email)
+        {
+            var model = new ResetPasswordViewModel { Token = token, NewPassword = email };
             return View(model);
         }
 
         [HttpPost]
-        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return View(model);
+                if (string.IsNullOrEmpty(model.NewPassword))
+                {
+                    ModelState.AddModelError(string.Empty, "O e-mail é obrigatório.");
+                    return View(model);
+                }
+                if (string.IsNullOrEmpty(model.Token))
+                {
+                    ModelState.AddModelError(string.Empty, "O token é obrigatório.");
+                    return View(model);
+                }
+                if (string.IsNullOrEmpty(model.NewPassword))
+                {
+                    ModelState.AddModelError(string.Empty, "A nova senha é obrigatória.");
+                    return View(model);
+                }
+
+                var user = await _userManager.FindByEmailAsync(model.NewPassword);
+                if (user != null)
+                {
+                    var result = await _userManager.ResetPasswordAsync(user, model.Token, model.NewPassword);
+                    if (result.Succeeded)
+                    {
+                        return RedirectToAction("ResetPasswordConfirmation");
+                    }
+                    AddErrors(result);
+                }
+                ModelState.AddModelError(string.Empty, "E-mail ou token inválido.");
             }
+            return View(model);
+        }
 
-            var user = await _userHelper.GetUserByEmailAsync(model.Email!);
-            if (user == null || user.Id != model.UserId)
-            {
-                return RedirectToAction("Login");
-            }
+        // GET: ResetPasswordConfirmation
+        public IActionResult ResetPasswordConfirmation()
+        {
+            return View();
+        }
 
-            var decodedToken = System.Net.WebUtility.UrlDecode(model.Token);
-            var result = await _userHelper.ResetPasswordAsync(user, decodedToken!, model.NewPassword!);
-
-            if (result.Succeeded)
-            {
-                // Aqui pode definir uma flag, se o seu modelo User tiver algo como 'PasswordInicialDefinida'
-                // user.PasswordInicialDefinida = true;
-                // await _userHelper.UpdateUserAsync(user);
-
-                ViewBag.Message = "Password redefinida com sucesso. Pode agora iniciar sessão.";
-                return RedirectToAction("Login");
-            }
-
+        private void AddErrors(IdentityResult result)
+        {
             foreach (var error in result.Errors)
             {
                 ModelState.AddModelError(string.Empty, error.Description);
             }
-
-            return View(model);
         }
 
-
-        [Authorize]
-        [HttpGet]
-        public async Task<IActionResult> EditProfile()
+        [Authorize(Roles = "AdminCompany")]
+        public async Task<IActionResult> ManageRoles(string userId)
         {
-            var user = await _userHelper.GetUserByEmailAsync(User.Identity!.Name!);
+            var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
                 return NotFound();
             }
-
-            var model = new EditProfileViewModel
+            var roles = await _roleManager.Roles.ToListAsync();
+            var model = new ManageRolesViewModel
             {
-                FullName = user.FullName,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
-                ImageId = user.ImageId
+                UserId = userId,
+                Roles = roles.Select(r => new SelectListItem { Value = r.Name, Text = r.Name })
             };
             return View(model);
         }
 
-        [Authorize]
         [HttpPost]
-        public async Task<IActionResult> EditProfile(EditProfileViewModel model)
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "AdminCompany")]
+        public async Task<IActionResult> ManageRoles(ManageRolesViewModel model)
         {
-            if (!ModelState.IsValid)
+            if (string.IsNullOrEmpty(model.UserId))
             {
-                return View(model);
+                return BadRequest("O ID do usuário é obrigatório.");
             }
 
-            var user = await _userHelper.GetUserByEmailAsync(User.Identity!.Name!);
+            var user = await _userManager.FindByIdAsync(model.UserId);
             if (user == null)
             {
                 return NotFound();
             }
 
-            user.FullName = model.FullName;
-            user.Email = model.Email;
-            user.PhoneNumber = model.PhoneNumber;
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            var selectedRole = model.RoleName;
 
-            if (model.ImageFile != null)
+            if (currentRoles.Any() && !string.IsNullOrEmpty(selectedRole) && !currentRoles.Contains(selectedRole))
             {
-                var imageId = await _blobHelper.UploadBlobAsync(model.ImageFile, "users");
-                user.ImageId = imageId;
+                await _userManager.RemoveFromRolesAsync(user, currentRoles);
             }
 
-            var result = await _userHelper.UpdateUserAsync(user);
+            if (!string.IsNullOrEmpty(selectedRole) && !currentRoles.Contains(selectedRole))
+            {
+                await _userManager.AddToRoleAsync(user, selectedRole);
+            }
 
-            if (result.Succeeded)
-            {
-                ViewBag.Message = "Perfil atualizado com sucesso.";
-                model.ImageId = user.ImageId;
-                return View(model);
-            }
-            else
-            {
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
-                return View(model);
-            }
+            return RedirectToAction("ManageUsers");
         }
 
 
         [Authorize]
-        [HttpGet]
-        public IActionResult ChangePassword()
+        public async Task<IActionResult> Enable2FA()
         {
-            return View();
-        }
-
-        [HttpPost]
-        [Authorize]
-        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
-            var user = await _userHelper.GetUserByEmailAsync(User.Identity!.Name!);
+            var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                ModelState.AddModelError(string.Empty, "Utilizador não encontrado.");
-                return View(model);
+                return Unauthorized("Usuário não autenticado.");
             }
 
-            var result = await _userHelper.ChangePasswordAsync(user, model.OldPassword!, model.NewPassword!);
-
-            if (result.Succeeded)
+            if (string.IsNullOrEmpty(user.PhoneNumber))
             {
-                ViewBag.Message = "Password alterada com sucesso.";
-                return View(model); // Retorna a vista com a mensagem de sucesso
-            }
-            else
-            {
-                ModelState.AddModelError(string.Empty, result.Errors.FirstOrDefault()?.Description!);
+                ModelState.AddModelError(string.Empty, "Por favor, configure seu número de telefone antes de ativar o 2FA.");
+                return View(new Enable2FAViewModel());
             }
 
+            var authenticatorKey = await _userManager.GenerateTwoFactorTokenAsync(user, "Phone");
+            var qrCodeUrl = $"otpauth://totp/CondoVision:{user.Email}?secret={authenticatorKey}&issuer=CondoVision";
+            var model = new Enable2FAViewModel { QRCodeImageUrl = qrCodeUrl };
             return View(model);
         }
 
-        [AllowAnonymous]
-        public IActionResult NotAuthorized()
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public async Task<IActionResult> Enable2FA(Enable2FAViewModel model)
         {
-            return View();
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized("Usuário não autenticado.");
+            }
+
+            if (string.IsNullOrEmpty(user.PhoneNumber))
+            {
+                ModelState.AddModelError(string.Empty, "Número de telefone não configurado.");
+                return View(model);
+            }
+
+            if (string.IsNullOrEmpty(model.Code))
+            {
+                ModelState.AddModelError(string.Empty, "O código de verificação é obrigatório.");
+                return View(model);
+            }
+
+            var result = await _userManager.VerifyTwoFactorTokenAsync(user, "Phone", model.Code);
+            if (result)
+            {
+                await _userManager.SetTwoFactorEnabledAsync(user, true);
+                return RedirectToAction("Index", "Home");
+            }
+            ModelState.AddModelError(string.Empty, "Código de verificação inválido.");
+            return View(model);
         }
-
-
 
     }
 }

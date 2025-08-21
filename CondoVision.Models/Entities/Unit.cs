@@ -1,4 +1,6 @@
-﻿using System;
+﻿using CondoVision.Models.Entities;
+using CondoVision.Models.Interface;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -8,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace CondoVision.Data.Entities
 {
-    public class Unit
+    public class Unit : IEntity
     {
         [Key]
         public int Id { get; set; }
@@ -18,16 +20,22 @@ namespace CondoVision.Data.Entities
         public string? UnitName { get; set; }
 
         [Required]
-        public decimal OwnershipShare { get; set; }
+        [Column(TypeName = "decimal(5, 2)")]
+        public decimal Permillage { get; set; }
 
+        public string? OwnerId { get; set; }
+        [ForeignKey("OwnerId")]
+        public User? Owner { get; set; }
+
+       
         [Required]
         public int CondominiumId { get; set; }
         [ForeignKey("CondominiumId")]
         public Condominium? Condominium { get; set; }
 
-        // Current Owner
-        public string? OwnerId { get; set; }
-        [ForeignKey("OwnerId")]
-        public User? Owner { get; set; }
+        public bool WasDeleted { get; set; }
     }
 }
+
+    
+

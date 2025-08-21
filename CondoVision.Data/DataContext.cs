@@ -11,6 +11,7 @@ using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
+using static CondoVision.Data.Entities.User;
 
 
 namespace CondoVision.Data
@@ -21,72 +22,58 @@ namespace CondoVision.Data
         {
         }
 
-        public DbSet<Company> Companies { get; set; }
         public DbSet<Condominium> Condominiums { get; set; }
         public DbSet<Unit> Units { get; set; }
+        public DbSet<CondominiumUser> CondominiumUsers { get; set; }
+        public DbSet<Company> Companies { get; set; }
 
-        public DbSet<Fraction> Fractions { get; set; }
-
-        public DbSet<FractionOwner> FractionOwners { get; set; }
-
-        protected override void OnModelCreating(ModelBuilder builder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(builder);
+            base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<Company>().HasKey(c => c.Id);
+            modelBuilder.Entity<Condominium>().HasKey(c => c.Id);
+            modelBuilder.Entity<CondominiumUser>().HasKey(cu => new { cu.CondominiumId, cu.UserId });
+            modelBuilder.Entity<Unit>().HasKey(u => u.Id);
 
-            builder.Entity<User>()
-                  .HasOne(u => u.Company)
-                  .WithMany(c => c.Users)
-                  .HasForeignKey(u => u.CompanyId);
+            // Configuração de CondominiumUser
+            modelBuilder.Entity<CondominiumUser>()
+                .HasOne(cu => cu.Condominium)
+                .WithMany(c => c.CondominiumUsers)
+                .HasForeignKey(cu => cu.CondominiumId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-           
-            builder.Entity<Unit>()
+            modelBuilder.Entity<CondominiumUser>()
+                .HasOne(cu => cu.User)
+                .WithMany(u => u.CondominiumUsers)
+                .HasForeignKey(cu => cu.UserId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configuração de Unit
+            modelBuilder.Entity<Unit>()
+                .HasOne(u => u.Condominium)
+                .WithMany(c => c.Units)
+                .HasForeignKey(u => u.CondominiumId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Unit>()
                 .HasOne(u => u.Owner)
-                .WithMany(o => o.OwnedUnits)
-                .HasForeignKey(u => u.OwnerId);
-
-          
-            builder.Entity<Unit>()
-                .Property(u => u.OwnershipShare)
-                .HasPrecision(18, 4);
-
-           
-            builder.Entity<FractionOwner>()
-               .HasOne(fo => fo.User)
-               .WithMany(u => u.FractionOwners)
-               .HasForeignKey(fo => fo.UserId)
-               .OnDelete(DeleteBehavior.Restrict);
-
-           
-            builder.Entity<FractionOwner>()
-                .HasOne(fo => fo.Fraction)
-                .WithMany(f => f.FractionOwners)
-                .HasForeignKey(fo => fo.FractionId)
+                .WithMany() // Ajuste para WithMany(u => u.Units) se User tiver Units
+                .HasForeignKey(u => u.OwnerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
            
-            foreach (var entityType in builder.Model.GetEntityTypes())
-            {
-               
-                if (typeof(IEntity).IsAssignableFrom(entityType.ClrType) &&
-                    entityType.FindProperty("WasDeleted") != null)
-                {
-                  
-                    var parameter = Expression.Parameter(entityType.ClrType, "e");
-                  
-                    var property = Expression.Property(parameter, "WasDeleted");
-                   
-                    var filter = Expression.Lambda(Expression.Not(property), parameter);
 
-                    builder.Entity(entityType.ClrType).HasQueryFilter(filter);
-
-                }
-            }
+            // Configurações de default para WasDeleted
+            modelBuilder.Entity<Company>().Property(c => c.WasDeleted).HasDefaultValue(false);
+            modelBuilder.Entity<Condominium>().Property(c => c.WasDeleted).HasDefaultValue(false);
+            modelBuilder.Entity<CondominiumUser>().Property(cu => cu.WasDeleted).HasDefaultValue(false);
+            modelBuilder.Entity<Unit>().Property(u => u.WasDeleted).HasDefaultValue(false);
         }
-
-
-
-
     }
-  
+
 }
+
+
+

@@ -2,6 +2,7 @@
 using CondoVision.Data.Entities;
 using CondoVision.Models.Entities;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace CondoVision.Models.Entities
 {
@@ -12,41 +13,63 @@ namespace CondoVision.Models.Entities
 
         }
 
-        public async Task<IEnumerable<Condominium>> GetCondominiumsByUser(string userId)
+
+
+        // Em CondominiumRepository.cs
+        public async Task<IEnumerable<Condominium>> GetAllCondominiumsWithCompanyAsync()
         {
-            var user = await _context.Users
-                .AsNoTracking()
-                .Include(u => u.Company)
-                .FirstOrDefaultAsync(u => u.Id == userId);
-
-            if (user?.CompanyId == null)
-            {
-                return Enumerable.Empty<Condominium>();
-            }
-
-            return await _dbSet
-                .Where(c => c.CompanyId == user.CompanyId && !c.WasDeleted)
+            return await _context.Condominiums
+                .Include(c => c.Company) // Inclui a relação com Company
+                .Where(c => !c.WasDeleted)
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Condominium>> GetActiveCondominiums()
+        public async Task<IEnumerable<Condominium>> GetAllCondominiumsAsync()
         {
-            return await _dbSet.Where(c => !c.WasDeleted).ToListAsync();
+            return await base.GetAllAsync();
         }
 
-        public async Task<List<Condominium>> GetAllWithCompaniesAsync()
+        public async Task<string?> GetCondominiumNameByIdAsync(int id)
         {
-            return await GetQueryable().Include(c => c.Company).ToListAsync();
+            return (await GetByIdAsync(id))?.Name;
         }
 
-        public async Task<IEnumerable<Condominium>> GetAllCondominiumsWithCompanyAsync()
+        public async Task<Condominium?> GetCondominiumByIdAsync(int id)
         {
-            return await this.GetAllWithIncludesAsync(c => c.Company!);
+            return await base.GetByIdAsync(id);
         }
 
-        public async Task<Condominium?> GetCondominiumWithCompanyAsync(int id)
+
+
+
+        public async Task<Condominium> AddCondominiumAsync(Condominium condominium)
         {
-            return await this.GetByIdWithIncludesAsync(id, c => c.Company!);
+            if (condominium == null)
+                throw new ArgumentNullException(nameof(condominium));
+            await base.AddAsync(condominium);
+            return condominium;
+        }
+
+        public async Task<Condominium> UpdateCondominiumAsync(Condominium condominium)
+        {
+            if (condominium == null)
+                throw new ArgumentNullException(nameof(condominium));
+            await base.UpdateAsync(condominium);
+            return condominium;
+        }
+
+        public async Task DeleteCondominiumAsync(int id)
+        {
+            var condominium = await base.GetByIdAsync(id, true); 
+            if (condominium != null)
+            {
+                await base.DeleteAsync(condominium);
+            }
+        }
+
+        public async Task CompleteAsync()
+        {
+            await _context.SaveChangesAsync(); 
         }
     }
 }

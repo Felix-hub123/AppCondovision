@@ -11,7 +11,7 @@ namespace CondoVision.Models.Interface
         int Id { get; set; }
 
 
-        bool WasDeleted { get; set; }
+      bool WasDeleted { get; set; }
 
     }
 }

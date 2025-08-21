@@ -168,7 +168,7 @@ namespace CondoVision.Data.Helper
         public async Task<SignInResult> LoginAsync(LoginViewModel model)
         {
             return await _signInManager.PasswordSignInAsync(
-                model.Username,
+                model.Email,
                 model.Password,
                 model.RememberMe,
                 false
@@ -308,8 +308,7 @@ namespace CondoVision.Data.Helper
         public async Task<User?> GetUserWithDetailsAsync(string userId)
         {
             return await _userManager.Users
-                .Include(u => u.Company)
-                .Include(u => u.OwnedUnits)
+                 .Include(u => u.OwnedUnits)
                 .Include(u => u.ManagedCondominiums)
                 .FirstOrDefaultAsync(u => u.Id == userId);
         }

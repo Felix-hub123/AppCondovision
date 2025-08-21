@@ -21,15 +21,21 @@ namespace CondoVision.Data.Helper
         EditProfileViewModel ToEditProfileViewModel(User user);
         User ToUser(EditProfileViewModel model, User existingUser);
 
+        Condominium ToCondominium(CreateCondominiumViewModel model);
 
-        Fraction ToFraction(CreateFractionViewModel model);
-        Fraction ToFraction(EditFractionViewModel model);
-        FractionViewModel ToFractionViewModel(Fraction fraction);
-        EditFractionViewModel ToEditFractionViewModel(Fraction fraction);
+        CondominiumViewModel ToCondominiumViewModel(Condominium condominium);
 
-        FractionOwnerViewModel ToFractionOwnerViewModel(FractionOwner fractionOwner);
-        FractionOwner ToFractionOwner(AssociateFractionOwnerViewModel model);
-        FractionOwner ToFractionOwner(AssociateFractionOwnerViewModel model, FractionOwner existingFractionOwner);
+       
+        Condominium ToCondominium(CondominiumViewModel viewModel);
 
+      
+        IEnumerable<CondominiumViewModel> ToCondominiumViewModelList(IEnumerable<Condominium> condominiums);
+
+        Task<EditCondominiumViewModel> ToEditCondominiumViewModelAsync(Condominium condominium);
+        Company ToCompany(CompanyViewModel model);
+
+        void UpdateCompany(Company company, CompanyViewModel model);
+
+        CompanyViewModel ToCompanyViewModel(Company company);
     }
 }

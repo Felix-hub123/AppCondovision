@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CondoVision.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250809223924_AddFractionOwnerEntity")]
-    partial class AddFractionOwnerEntity
+    [Migration("20250820075521_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -74,23 +74,30 @@ namespace CondoVision.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("CompanyId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("PostalCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<DateTime>("RegistrationDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<bool>("WasDeleted")
                         .HasColumnType("bit");
@@ -98,6 +105,8 @@ namespace CondoVision.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CompanyId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Condominiums");
                 });
@@ -116,14 +125,16 @@ namespace CondoVision.Data.Migrations
                     b.Property<string>("OwnerId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<decimal>("OwnershipShare")
-                        .HasPrecision(18, 4)
-                        .HasColumnType("decimal(18,4)");
+                    b.Property<decimal>("Permillage")
+                        .HasColumnType("decimal(5, 2)");
 
                     b.Property<string>("UnitName")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("WasDeleted")
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -143,10 +154,9 @@ namespace CondoVision.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Address")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("CompanyId")
+                    b.Property<int>("CompanyId")
                         .HasColumnType("int");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -165,8 +175,8 @@ namespace CondoVision.Data.Migrations
 
                     b.Property<string>("FullName")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<Guid?>("ImageId")
                         .HasColumnType("uniqueidentifier");
@@ -198,28 +208,23 @@ namespace CondoVision.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TaxId")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
-
-                    b.Property<int?>("UnitId")
-                        .HasColumnType("int");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<int>("UserType")
-                        .HasColumnType("int");
+                    b.Property<string>("UserType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("WasDeleted")
                         .HasColumnType("bit");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CompanyId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -229,91 +234,28 @@ namespace CondoVision.Data.Migrations
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
-                    b.HasIndex("UnitId");
-
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("CondoVision.Models.Entities.Fraction", b =>
+            modelBuilder.Entity("CondoVision.Models.Entities.CondominiumUser", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Area")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Block")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
                     b.Property<int>("CondominiumId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Floor")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<decimal>("Permilage")
-                        .HasColumnType("decimal(18,4)");
-
-                    b.Property<string>("UnitNumber")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<bool>("WasDeleted")
-                        .HasColumnType("bit");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CondominiumId");
-
-                    b.ToTable("Fractions");
-                });
-
-            modelBuilder.Entity("CondoVision.Models.Entities.FractionOwner", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("FractionId")
-                        .HasColumnType("int");
-
                     b.Property<string>("UserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
                     b.Property<bool>("WasDeleted")
                         .HasColumnType("bit");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("FractionId");
+                    b.HasKey("CondominiumId", "UserId");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("FractionOwners");
-                });
-
-            modelBuilder.Entity("CondominiumUser", b =>
-                {
-                    b.Property<int>("ManagedCondominiumsId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UsersId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("ManagedCondominiumsId", "UsersId");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("CondominiumUser");
+                    b.ToTable("CondominiumUsers");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -454,8 +396,13 @@ namespace CondoVision.Data.Migrations
                     b.HasOne("CondoVision.Data.Entities.Company", "Company")
                         .WithMany("Condominiums")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("CondoVision.Data.Entities.User", null)
+                        .WithMany("ManagedCondominiums")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Company");
                 });
@@ -465,76 +412,36 @@ namespace CondoVision.Data.Migrations
                     b.HasOne("CondoVision.Data.Entities.Condominium", "Condominium")
                         .WithMany("Units")
                         .HasForeignKey("CondominiumId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("CondoVision.Data.Entities.User", "Owner")
                         .WithMany("OwnedUnits")
-                        .HasForeignKey("OwnerId");
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Condominium");
 
                     b.Navigation("Owner");
                 });
 
-            modelBuilder.Entity("CondoVision.Data.Entities.User", b =>
-                {
-                    b.HasOne("CondoVision.Data.Entities.Company", "Company")
-                        .WithMany("Users")
-                        .HasForeignKey("CompanyId");
-
-                    b.HasOne("CondoVision.Data.Entities.Unit", "Unit")
-                        .WithMany()
-                        .HasForeignKey("UnitId");
-
-                    b.Navigation("Company");
-
-                    b.Navigation("Unit");
-                });
-
-            modelBuilder.Entity("CondoVision.Models.Entities.Fraction", b =>
+            modelBuilder.Entity("CondoVision.Models.Entities.CondominiumUser", b =>
                 {
                     b.HasOne("CondoVision.Data.Entities.Condominium", "Condominium")
-                        .WithMany()
+                        .WithMany("AssociatedManagers")
                         .HasForeignKey("CondominiumId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Condominium");
-                });
-
-            modelBuilder.Entity("CondoVision.Models.Entities.FractionOwner", b =>
-                {
-                    b.HasOne("CondoVision.Models.Entities.Fraction", "Fraction")
-                        .WithMany("FractionOwners")
-                        .HasForeignKey("FractionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("CondoVision.Data.Entities.User", "User")
-                        .WithMany("FractionOwners")
+                        .WithMany("AssociatedCondominiums")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Fraction");
+                    b.Navigation("Condominium");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("CondominiumUser", b =>
-                {
-                    b.HasOne("CondoVision.Data.Entities.Condominium", null)
-                        .WithMany()
-                        .HasForeignKey("ManagedCondominiumsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CondoVision.Data.Entities.User", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -542,7 +449,7 @@ namespace CondoVision.Data.Migrations
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
@@ -551,7 +458,7 @@ namespace CondoVision.Data.Migrations
                     b.HasOne("CondoVision.Data.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
@@ -560,7 +467,7 @@ namespace CondoVision.Data.Migrations
                     b.HasOne("CondoVision.Data.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
@@ -569,13 +476,13 @@ namespace CondoVision.Data.Migrations
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("CondoVision.Data.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
@@ -584,32 +491,29 @@ namespace CondoVision.Data.Migrations
                     b.HasOne("CondoVision.Data.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
             modelBuilder.Entity("CondoVision.Data.Entities.Company", b =>
                 {
                     b.Navigation("Condominiums");
-
-                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("CondoVision.Data.Entities.Condominium", b =>
                 {
+                    b.Navigation("AssociatedManagers");
+
                     b.Navigation("Units");
                 });
 
             modelBuilder.Entity("CondoVision.Data.Entities.User", b =>
                 {
-                    b.Navigation("FractionOwners");
+                    b.Navigation("AssociatedCondominiums");
+
+                    b.Navigation("ManagedCondominiums");
 
                     b.Navigation("OwnedUnits");
-                });
-
-            modelBuilder.Entity("CondoVision.Models.Entities.Fraction", b =>
-                {
-                    b.Navigation("FractionOwners");
                 });
 #pragma warning restore 612, 618
         }
