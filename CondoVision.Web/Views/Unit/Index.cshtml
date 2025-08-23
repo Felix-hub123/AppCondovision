@@ -1,0 +1,122 @@
+﻿@using CondoVision.Models
+@model IEnumerable<CondoVision.Models.UnitViewModel>  
+
+@{  
+    ViewData["Title"] = "Lista de Unidades";  
+}  
+
+<h2>Lista de Unidades</h2>  
+
+<div class="form-group">  
+    <label for="condominiumId">Selecione um Condomínio:</label>
+    <select id="condominiumId" name="condominiumId" class="form-control" onchange="loadUnits()">
+        <option value="0">Selecione um condomínio</option>
+        @if (ViewBag.Condominiums != null)
+        {
+            foreach (var condominium in (SelectList)ViewBag.Condominiums)
+            {
+                int condId = 0;
+                var isSelected = ViewBag.CondominiumId != null
+                && int.TryParse(condominium.Value, out condId)
+                && ViewBag.CondominiumId == condId;
+
+                if (isSelected)
+                {
+                    @:
+                    <option value="@condominium.Value" selected>@condominium.Text</option>
+                }
+                else
+                {
+                    @:
+                    <option value="@condominium.Value">@condominium.Text</option>
+                }
+            }
+        }
+    </select>
+</div>  
+
+<table id="unitsTable" class="table">  
+    <thead>  
+        <tr>  
+            <th>@Html.DisplayNameFor(model => model.First().Id)</th>  
+            <th>@Html.DisplayNameFor(model => model.First().UnitName)</th>  
+            <th>@Html.DisplayNameFor(model => model.First().Permillage)</th>  
+            <th>@Html.DisplayNameFor(model => model.First().OwnerFullName)</th>  
+            <th>Ações</th>  
+        </tr>  
+    </thead>  
+    <tbody>  
+        @if (ViewBag.Units != null)  
+        {  
+            foreach (var item in (IEnumerable<CondoVision.Models.UnitViewModel>)ViewBag.Units)  
+            {  
+                <tr>  
+                    <td>@item.Id</td>  
+                    <td>@item.UnitName</td>  
+                    <td>@item.Permillage</td>  
+                    <td>@item.OwnerFullName</td>  
+                    <td>  
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Detalhes</a>  
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-primary btn-sm">Editar</a>  
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Excluir</a>  
+                    </td>  
+                </tr>  
+            }  
+        }  
+        else  
+        {  
+            <tr><td colspan="5">Selecione um condomínio para ver as unidades.</td></tr>  
+        }  
+    </tbody>  
+</table>  
+
+<a asp-action="Create" asp-route-condominiumId="@(ViewBag.CondominiumId ?? 0)" class="btn btn-success">Nova Unidade</a>  
+
+@section Scripts {  
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>  
+    <script>  
+        function loadUnits() {  
+            var condominiumId = $("#condominiumId").val();  
+            if (condominiumId > 0) {  
+                $.get("/Unit/GetUnitsByCondominiumId?condominiumId=" + condominiumId, function (data) {  
+                    if (data.success) {  
+                        var units = data.units;  
+                        var tbody = $("#unitsTable tbody");  
+                        tbody.empty();  
+                        if (units.length > 0) {  
+                            $.each(units, function (index, unit) {  
+                                tbody.append(  
+                                    "<tr>" +  
+                                    "<td>" + (unit.id || '') + "</td>" +  
+                                    "<td>" + (unit.unitName || '') + "</td>" +  
+                                    "<td>" + (unit.permillage || 0) + "</td>" +  
+                                    "<td>" + (unit.ownerFullName || '') + "</td>" +  
+                                    "<td>" +  
+                                    '<a href=\"/Unit/Details/' + (unit.id || 0) + '\" class=\"btn btn-info btn-sm\">Detalhes</a>' +  
+                                    '<a href=\"/Unit/Edit/' + (unit.id || 0) + '\" class=\"btn btn-primary btn-sm\">Editar</a>' +  
+                                    '<a href=\"/Unit/Delete/' + (unit.id || 0) + '\" class=\"btn btn-danger btn-sm\">Excluir</a>' +  
+                                    "</td>" +  
+                                    "</tr>"  
+                                );  
+                            });  
+                        } else {  
+                            tbody.append("<tr><td colspan='5'>Nenhuma unidade encontrada.</td></tr>");  
+                        }  
+                    } else {  
+                        alert(data.message);  
+                    }  
+                });  
+            } else {  
+                $("#unitsTable tbody").empty();  
+            }  
+        }  
+
+        $(document).ready(function () {  
+            var initialCondominiumId = @Html.Raw(Json.Serialize(ViewBag.CondominiumId ?? 0))  
+             (initialCondominiumId > 0)  
+                $("#condominiumId").val(initialCondominiumId);  
+                loadUnits();  
+              
+        });  
+    </script>  
+}

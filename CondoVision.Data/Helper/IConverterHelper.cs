@@ -17,7 +17,7 @@ namespace CondoVision.Data.Helper
 
         User ToUser(EditUserViewModel model, User user);
 
-        User ToUser(RegisterNewUserViewModel model);
+        User ToUser(RegisterUserViewModel model);
         EditProfileViewModel ToEditProfileViewModel(User user);
         User ToUser(EditProfileViewModel model, User existingUser);
 
@@ -28,7 +28,9 @@ namespace CondoVision.Data.Helper
        
         Condominium ToCondominium(CondominiumViewModel viewModel);
 
-      
+        List<UserListViewModel> ToUserListViewModel(List<User> users);
+
+
         IEnumerable<CondominiumViewModel> ToCondominiumViewModelList(IEnumerable<Condominium> condominiums);
 
         Task<EditCondominiumViewModel> ToEditCondominiumViewModelAsync(Condominium condominium);
@@ -37,5 +39,13 @@ namespace CondoVision.Data.Helper
         void UpdateCompany(Company company, CompanyViewModel model);
 
         CompanyViewModel ToCompanyViewModel(Company company);
+
+        UnitViewModel ToViewModel(Unit unit);
+
+        IEnumerable<UnitViewModel> ToViewModel(IEnumerable<Unit> units);
+
+        Unit ToEntity(UnitViewModel model);
+
+        void UpdateUnit(Unit unit, UnitViewModel model);
     }
 }

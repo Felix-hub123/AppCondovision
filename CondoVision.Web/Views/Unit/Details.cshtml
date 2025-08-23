@@ -1,0 +1,47 @@
+﻿@model CondoVision.Models.UnitViewModel
+
+@{
+    ViewData["Title"] = "Detalhes da Unidade";
+}
+
+<h2>Detalhes da Unidade</h2>
+
+<div>
+    <h4>Unidade</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Id)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Id)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.UnitName)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.UnitName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Permillage)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Permillage)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.OwnerFullName)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.OwnerFullName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.CondominiumName)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.CondominiumName)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Index" asp-route-condominiumId="@Model.CondominiumId" class="btn btn-secondary">Voltar</a>
+</div>

@@ -1,0 +1,43 @@
+﻿@model CondoVision.Models.UnitViewModel
+
+@{
+    ViewData["Title"] = "Editar Unidade";
+}
+
+<h2>Editar Unidade</h2>
+
+<form asp-action="Edit" method="post">
+    <div class="form-group">
+        <label asp-for="Id" class="control-label"></label>
+        <input asp-for="Id" class="form-control" readonly />
+    </div>
+    <div class="form-group">
+        <label asp-for="UnitName" class="control-label"></label>
+        <input asp-for="UnitName" class="form-control" />
+        <span asp-validation-for="UnitName" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Permillage" class="control-label"></label>
+        <input asp-for="Permillage" class="form-control" />
+        <span asp-validation-for="Permillage" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="OwnerId" class="control-label"></label>
+        <select asp-for="OwnerId" class="form-control" asp-items="ViewBag.Owners"></select>
+        <span asp-validation-for="OwnerId" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="CondominiumId" class="control-label"></label>
+        <input asp-for="CondominiumId" class="form-control" readonly />
+    </div>
+    <div class="form-group">
+        <input type="submit" value="Salvar" class="btn btn-primary" />
+    </div>
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="CondominiumId" />
+    <a asp-action="Index" asp-route-condominiumId="@Model.CondominiumId" class="btn btn-secondary">Cancelar</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

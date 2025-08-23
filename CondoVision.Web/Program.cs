@@ -14,6 +14,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+
 builder.Services.AddIdentity<User, IdentityRole>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
@@ -61,10 +62,28 @@ builder.Services.AddScoped<ICondominiumRepository, CondominiumRepository>();
 builder.Services.AddScoped<IConverterHelper, ConverterHelper>();
 builder.Services.AddScoped<IEMailHelper, EMailHelper>();
 builder.Services.AddScoped<IBlobHelper, BlobHelper>();
+builder.Services.AddScoped<IUserRepository, UserRepository>(); 
+builder.Services.AddScoped<IUnitRepository, UnitRepository>();
 builder.Services.AddTransient<SeedDb>();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+    try
+    {
+        var seedDb = services.GetRequiredService<SeedDb>();
+        await seedDb.SeedAsync();
+        Console.WriteLine("Seeding concluído com sucesso." + DateTime.Now.ToString("HH:mm:ss"));
+    }
+    catch (Exception ex)
+    {
+        var logger = loggerFactory.CreateLogger<Program>();
+        logger.LogError(ex, "Ocorreu um erro durante o seeding: {Message}", ex.Message);
+    }
+}
 // Configuração do pipeline HTTP
 if (!app.Environment.IsDevelopment())
 {
@@ -75,16 +94,7 @@ else
 {
     app.UseDeveloperExceptionPage();
     app.UseMigrationsEndPoint();
-
-    // Aplicar migrações e executar o seeder no ambiente de desenvolvimento
-    using (var scope = app.Services.CreateScope())
-    {
-        var services = scope.ServiceProvider;
-        var context = services.GetRequiredService<DataContext>();
-        context.Database.Migrate();
-        var seeder = services.GetRequiredService<SeedDb>();
-        await seeder.SeedAsync();
-    }
+      
 }
 
 app.UseHttpsRedirection();

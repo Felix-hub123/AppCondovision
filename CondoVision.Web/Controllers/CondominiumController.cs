@@ -16,6 +16,7 @@ namespace CondoVision.Web.Controllers
         private readonly ILogger<CondominiumController> _logger;
         private readonly IConverterHelper _converterHelper;
         private readonly ICompanyRepository _companyRepository;
+        private readonly IUnitRepository _unitRepository;
         private readonly UserManager<User> _userManager;
 
 
@@ -25,6 +26,7 @@ namespace CondoVision.Web.Controllers
             ILogger<CondominiumController> logger,
             IConverterHelper converterHelper,
             ICompanyRepository companyRepository,
+            IUnitRepository unitRepository, 
             UserManager<User> userManager
 
             )
@@ -33,6 +35,7 @@ namespace CondoVision.Web.Controllers
             _logger = logger;
             _converterHelper = converterHelper;
             _companyRepository = companyRepository;
+            _unitRepository = unitRepository;
             _userManager = userManager;
 
         }
@@ -57,6 +60,19 @@ namespace CondoVision.Web.Controllers
                 Text = c.Name 
             }).ToList();
 
+            return View(model);
+        }
+
+        public async Task<IActionResult> Units(int condominiumId)
+        {
+            var condominium = await _condominiumRepository.GetByIdAsync(condominiumId);
+            if (condominium == null)
+                return NotFound();
+
+            var units = await _unitRepository.GetUnitsByCondominiumIdAsync(condominiumId);
+            var model = _converterHelper.ToViewModel(units);
+            ViewBag.CondominiumId = condominiumId;
+            ViewBag.CondominiumName = condominium.Name;
             return View(model);
         }
 

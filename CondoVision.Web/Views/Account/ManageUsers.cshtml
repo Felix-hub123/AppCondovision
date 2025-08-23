@@ -1,18 +1,40 @@
 ﻿@using CondoVision.Data.Entities
+@using Microsoft.AspNetCore.Identity
 @model IEnumerable<User>
 
 @{
-   
+    ViewData["Title"] = "Gerir Utilizadores";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <h1>Gerir Utilizadores</h1>
 
+
+<a asp-action="Create" class="btn btn-success mb-3">Novo Utilizador</a>
+
+
+<form asp-action="Index" method="get" class="mb-3">
+    <div class="input-group w-25">
+        <input type="text" name="search" class="form-control" placeholder="Pesquisar por Email ou Nome..." value="@ViewData["CurrentFilter"]" />
+        <button type="submit" class="btn btn-primary">Pesquisar</button>
+    </div>
+</form>
+
 <table class="table table-striped">
     <thead>
         <tr>
-            <th>Email</th>
-            <th>Nome Completo</th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="@ViewData["EmailSortParm"]">@Html.DisplayNameFor(model => model.Email)</a>
+            </th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="@ViewData["NameSortParm"]">@Html.DisplayNameFor(model => model.FullName)</a>
+            </th>
+            <th>
+                Papel
+            </th>
+            <th>
+                Status
+            </th>
             <th>Ações</th>
         </tr>
     </thead>
@@ -22,10 +44,30 @@
             <tr>
                 <td>@user.Email</td>
                 <td>@user.FullName</td>
+                <td>@(string.Join(", ", (await UserManager.GetRolesAsync(user)) ?? new List<string>()))</td>
+                <td>@(user.EmailConfirmed ? "Ativo" : "Inativo")</td>
                 <td>
-                    <a asp-action="ManageRoles" asp-route-userId="@user.Id" class="btn btn-primary">Gerir Permissões</a>
+                    <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-warning btn-sm">Editar</a>
+                    <a asp-action="ManageRoles" asp-route-userId="@user.Id" class="btn btn-primary btn-sm">Gerir Permissões</a>
+                    <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja eliminar este utilizador?');">Eliminar</a>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
+
+@if (ViewBag.TotalPages > 1)
+{
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            @for (int i = 1; i <= ViewBag.TotalPages; i++)
+            {
+                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@i">@i</a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
+@inject UserManager<User> UserManager

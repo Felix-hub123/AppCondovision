@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@using CondoVision.Data.Entities
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<User> UserManager
+
+<!DOCTYPE html>
 <html lang="pt">
 <head>
     <meta charset="utf-8" />
@@ -10,13 +14,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="~/AdminLTE/plugins/fontawesome-free/css/all.min.css" asp-append-version="true" />
-    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css" />
     <link rel="stylesheet" href="~/AdminLTE/plugins/overlayScrollbars/css/OverlayScrollbars.min.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/AdminLTE/dist/css/adminlte.min.css" asp-append-version="true" />
 
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/CondoVision.Web.styles.css" asp-append-version="true" />
-
     <link rel="stylesheet" href="~/css/_CondoVisionTheme.css" asp-append-version="true" />
 
     @RenderSection("Styles", required: false)
@@ -44,7 +47,7 @@
                     <div class="navbar-search-block">
                         <form class="form-inline">
                             <div class="input-group input-group-sm">
-                                <input class="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search">
+                                <input class="form-control form-control-navbar" type="search" placeholder="Pesquisar" aria-label="Pesquisar">
                                 <div class="input-group-append">
                                     <button class="btn btn-navbar" type="submit">
                                         <i class="fas fa-search"></i>
@@ -80,6 +83,7 @@
                         <a href="#" class="dropdown-item dropdown-footer">Ver Todas as Mensagens</a>
                     </div>
                 </li>
+
                 <li class="nav-item dropdown">
                     <a class="nav-link" data-toggle="dropdown" href="#">
                         <i class="far fa-bell"></i>
@@ -101,25 +105,51 @@
                         <a href="#" class="dropdown-item dropdown-footer">Ver Todas as Notificações</a>
                     </div>
                 </li>
+
                 <li class="nav-item">
                     <a class="nav-link" data-widget="fullscreen" href="#" role="button">
                         <i class="fas fa-expand-arrows-alt"></i>
                     </a>
                 </li>
-                <li class="nav-item">
-                    @if (User.Identity!.IsAuthenticated)
-                    {
-                        <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Logout">
-                            <i class="fas fa-sign-out-alt"></i> Sair
-                        </a>
-                    }
-                    else
-                    {
-                        <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Login">
-                            <i class="fas fa-sign-in-alt"></i> Login
-                        </a>
-                    }
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link" data-toggle="dropdown" href="#">
+                        <i class="far fa-user"></i> @if (User.Identity?.IsAuthenticated ?? false) {
+                        @User.Identity.Name
+                                                } else
+                        {
+                            @("Conta")
+                        }
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right">
+                        @if (User.Identity?.IsAuthenticated ?? false)
+                        {
+                            <a asp-controller="Account" asp-action="ManageUsers" class="dropdown-item" asp-if="@User.IsInRole("CompanyAdmin")">
+                                <i class="fas fa-users"></i> Gerenciar Usuários
+                            </a>
+                            <a asp-controller="Account" asp-action="Enable2FA" class="dropdown-item">
+                                <i class="fas fa-shield-alt"></i> Ativar 2FA
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                                <i class="fas fa-sign-out-alt"></i> Sair
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Login" class="dropdown-item">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </a>
+                            <a asp-controller="Account" asp-action="Register" class="dropdown-item">
+                                <i class="fas fa-user-plus"></i> Registar
+                            </a>
+                            <a asp-controller="Account" asp-action="ForgotPassword" class="dropdown-item">
+                                <i class="fas fa-lock"></i> Esqueceu a Senha?
+                            </a>
+                        }
+                    </div>
                 </li>
+
                 <li class="nav-item">
                     <a class="nav-link" data-widget="control-sidebar" data-controlsidebar-slide="true" href="#" role="button">
                         <i class="fas fa-th-large"></i>
@@ -135,7 +165,7 @@
             </a>
 
             <div class="sidebar">
-                @if (User.Identity.IsAuthenticated)
+                @if (User.Identity?.IsAuthenticated ?? false)
                 {
                     <div class="user-panel mt-3 pb-3 mb-3 d-flex">
                         <div class="image">
@@ -149,7 +179,7 @@
 
                 <div class="form-inline">
                     <div class="input-group" data-widget="sidebar-search">
-                        <input class="form-control form-control-sidebar" type="search" placeholder="Search" aria-label="Search">
+                        <input class="form-control form-control-sidebar" type="search" placeholder="Pesquisar" aria-label="Pesquisar">
                         <div class="input-group-append">
                             <button class="btn btn-sidebar">
                                 <i class="fas fa-search fa-fw"></i>
@@ -160,69 +190,75 @@
 
                 <nav class="mt-2">
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-                        @if (User.Identity.IsAuthenticated)
+                        @if (User.Identity?.IsAuthenticated ?? false)
                         {
                             @if (User.IsInRole("CompanyAdmin"))
                             {
                                 <li class="nav-item">
-                                    <a asp-area="" asp-controller="CompanyAdmin" asp-action="Index" class="nav-link">
+                                    <a asp-controller="CompanyAdmin" asp-action="Index" class="nav-link">
                                         <i class="nav-icon fas fa-tachometer-alt"></i>
                                         <p>Painel Admin</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a asp-area="" asp-controller="Company" asp-action="Index" class="nav-link">
+                                    <a asp-controller="Company" asp-action="Index" class="nav-link">
                                         <i class="nav-icon fas fa-building"></i>
                                         <p>Empresas</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a asp-area="" asp-controller="Condominium" asp-action="Index" class="nav-link">
+                                    <a asp-controller="Condominium" asp-action="Index" class="nav-link">
                                         <i class="nav-icon fas fa-city"></i>
                                         <p>Condomínios</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a asp-area="" asp-controller="Fraction" asp-action="Index" class="nav-link">
+                                    <a asp-controller="Fraction" asp-action="Index" class="nav-link">
                                         <i class="nav-icon fas fa-home"></i>
                                         <p>Frações</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a asp-area="" asp-controller="FractionOwner" asp-action="Index" class="nav-link">
+                                    <a asp-controller="FractionOwner" asp-action="Index" class="nav-link">
                                         <i class="nav-icon fas fa-users"></i>
                                         <p>Proprietários Fração</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a asp-area="" asp-controller="User" asp-action="Index" class="nav-link">
-                                        <i class="nav-icon fas fa-user-circle"></i>
+                                    <a asp-controller="Account" asp-action="ManageUsers" class="nav-link">
+                                        <i class="nav-icon fas fa-users"></i>
                                         <p>Utilizadores</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a asp-controller="Account" asp-action="ManageRoles" asp-route-userId="@UserManager.GetUserId(User)" class="nav-link">
+                                        <i class="nav-icon fas fa-user-shield"></i>
+                                        <p>Gerenciar Permissões</p>
                                     </a>
                                 </li>
                             }
                             else if (User.IsInRole("CondoManager"))
                             {
                                 <li class="nav-item">
-                                    <a asp-area="" asp-controller="CondoManager" asp-action="Index" class="nav-link">
+                                    <a asp-controller="CondoManager" asp-action="Index" class="nav-link">
                                         <i class="nav-icon fas fa-chart-line"></i>
                                         <p>Painel Gestor</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a asp-area="" asp-controller="Condominium" asp-action="Index" class="nav-link">
+                                    <a asp-controller="Condominium" asp-action="Index" class="nav-link">
                                         <i class="nav-icon fas fa-city"></i>
                                         <p>Condomínios</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a asp-area="" asp-controller="Fraction" asp-action="Index" class="nav-link">
+                                    <a asp-controller="Fraction" asp-action="Index" class="nav-link">
                                         <i class="nav-icon fas fa-home"></i>
                                         <p>Frações</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a asp-area="" asp-controller="FractionOwner" asp-action="Index" class="nav-link">
+                                    <a asp-controller="FractionOwner" asp-action="Index" class="nav-link">
                                         <i class="nav-icon fas fa-users"></i>
                                         <p>Proprietários Fração</p>
                                     </a>
@@ -231,25 +267,37 @@
                             else if (User.IsInRole("CondoOwner"))
                             {
                                 <li class="nav-item">
-                                    <a asp-area="" asp-controller="CondoOwner" asp-action="Index" class="nav-link">
+                                    <a asp-controller="CondoOwner" asp-action="Index" class="nav-link">
                                         <i class="nav-icon fas fa-user"></i>
                                         <p>Meu Painel</p>
                                     </a>
                                 </li>
                             }
+                            <li class="nav-item">
+                                <a asp-controller="Account" asp-action="Enable2FA" class="nav-link">
+                                    <i class="nav-icon fas fa-shield-alt"></i>
+                                    <p>Ativar 2FA</p>
+                                </a>
+                            </li>
                         }
                         else
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Login">
+                                <a asp-controller="Account" asp-action="Login" class="nav-link">
                                     <i class="nav-icon fas fa-sign-in-alt"></i>
                                     <p>Login</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Register">
+                                <a asp-controller="Account" asp-action="Register" class="nav-link">
                                     <i class="nav-icon fas fa-user-plus"></i>
                                     <p>Registar</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a asp-controller="Account" asp-action="ForgotPassword" class="nav-link">
+                                    <i class="nav-icon fas fa-lock"></i>
+                                    <p>Esqueceu a Senha?</p>
                                 </a>
                             </li>
                         }
@@ -257,6 +305,66 @@
                 </nav>
             </div>
         </aside>
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+            <i class="fas fa-sign-out-alt"></i> Sair
+        </a>
+
+        <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content bg-secondary">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="logoutModalLabel">Confirmação de Saída</h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <p class="mb-0">Tem certeza que deseja sair da sua conta?</p>
+                        <p class="text-muted small">Você será desconectado e redirecionado para a página inicial.</p>
+                    </div>
+                    <div class="modal-footer justify-content-between">
+                        <form asp-controller="Account" asp-action="Logout" method="post" id="logoutForm">
+                            @Html.AntiForgeryToken()
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">Sair</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="dropdown-divider"></div>
+        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+            <i class="fas fa-sign-out-alt"></i> Sair
+        </a>
+
+        <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content bg-light shadow-sm">
+                    <div class="modal-header bg-gradient-primary text-white">
+                        <h5 class="modal-title" id="logoutModalLabel">
+                            <i class="fas fa-sign-out-alt mr-2"></i> Confirmação de Saída
+                        </h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body text-center py-4">
+                        <p class="h6 mb-2">Tem certeza que deseja sair da sua conta?</p>
+                        <p class="text-muted">Você será desconectado e redirecionado para a página inicial.</p>
+                    </div>
+                    <div class="modal-footer justify-content-between">
+                        <form asp-controller="Account" asp-action="Logout" method="post" id="logoutForm" class="w-100">
+                            @Html.AntiForgeryToken()
+                            <div class="d-flex justify-content-between w-100">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">Sair</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div class="content-wrapper">
             @RenderSection("ContentHeader", required: false)
@@ -271,7 +379,7 @@
             <strong>&copy; @DateTime.Now.Year - CondoVision.</strong>
             Todos os direitos reservados.
             <div class="float-right d-none d-sm-inline-block">
-                <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacidade</a>
+                <a asp-controller="Home" asp-action="Privacy">Privacidade</a>
             </div>
         </footer>
 
@@ -283,8 +391,8 @@
     <script src="~/AdminLTE/plugins/bootstrap/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
     <script src="~/AdminLTE/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js" asp-append-version="true"></script>
     <script src="~/AdminLTE/dist/js/adminlte.min.js" asp-append-version="true"></script>
-
     <script src="~/js/site.js" asp-append-version="true"></script>
+
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

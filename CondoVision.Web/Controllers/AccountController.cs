@@ -1,4 +1,5 @@
-﻿using CondoVision.Data.Entities;
+﻿using CondoVision.Data;
+using CondoVision.Data.Entities;
 using CondoVision.Data.Helper;
 using CondoVision.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace CondoVision.Web.Controllers
 {
@@ -16,16 +18,150 @@ namespace CondoVision.Web.Controllers
         private readonly SignInManager<User> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IEMailHelper _mailHelper;
+        private readonly IUserRepository _userRepository;
+        private readonly IConverterHelper _converterHelper;
 
         public AccountController(UserManager<User> userManager, 
             SignInManager<User> signInManager,
             RoleManager<IdentityRole> roleManager,
-            IEMailHelper mailHelper)
+            IEMailHelper mailHelper,
+            IUserRepository userRepository,
+            IConverterHelper converterHelper)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
             _mailHelper = mailHelper;
+            _userRepository = userRepository;
+            _converterHelper = converterHelper;
+        }
+
+
+
+        public async Task<IActionResult> Index(string searchString, string sortOrder, int page = 1, int pageSize = 10)
+        {
+            ViewData["CurrentFilter"] = searchString;
+            ViewData["EmailSortParm"] = string.IsNullOrEmpty(sortOrder) ? "email_desc" : "";
+            ViewData["NameSortParm"] = sortOrder == "name" ? "name_desc" : "name";
+
+            var usersQuery = _userRepository.GetAllQueryable();
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                usersQuery = usersQuery.Where(u => u.Email.Contains(searchString) || u.FullName.Contains(searchString));
+            }
+
+            usersQuery = sortOrder switch
+            {
+                "email_desc" => usersQuery.OrderByDescending(u => u.Email),
+                "name" => usersQuery.OrderBy(u => u.FullName),
+                "name_desc" => usersQuery.OrderByDescending(u => u.FullName),
+                _ => usersQuery.OrderBy(u => u.Email)
+            };
+
+            var totalUsers = await usersQuery.CountAsync();
+            var users = usersQuery
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var model = _converterHelper.ToUserListViewModel(users); 
+            ViewBag.TotalPages = (int)Math.Ceiling((double)totalUsers / pageSize);
+            ViewBag.CurrentPage = page;
+
+            return View(model);
+        }
+
+
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(RegisterUserViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                // Converte o ViewModel para a entidade User usando o ConverterHelper
+                var user = _converterHelper.ToUser(model);
+
+                var result = await _userManager.CreateAsync(user, model.Password);
+                if (result.Succeeded)
+                {
+                    await _userManager.AddToRoleAsync(user, "CondoOwner"); // Papel padrão
+                    await _userRepository.AddAsync(user); // Salva no repositório
+                    return RedirectToAction(nameof(Index));
+                }
+                AddErrors(result);
+            }
+            return View(model);
+        }
+
+        // Editar utilizador
+        public async Task<IActionResult> Edit(string id)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null)
+                return NotFound();
+
+            // Converte a entidade User para EditProfileViewModel usando o ConverterHelper
+            var model = _converterHelper.ToEditProfileViewModel(user);
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(string id, EditProfileViewModel model)
+        {
+            if (id != model.Id)
+                return NotFound();
+
+            if (ModelState.IsValid)
+            {
+                var user = await _userRepository.GetByIdAsync(id);
+                if (user != null)
+                {
+                    // Atualiza a entidade User existente com os dados do ViewModel
+                    var updatedUser = _converterHelper.ToUser(model, user);
+
+                    var result = await _userManager.UpdateAsync(updatedUser);
+                    if (result.Succeeded)
+                    {
+                        await _userRepository.UpdateAsync(updatedUser); // Salva no repositório
+                        return RedirectToAction(nameof(Index));
+                    }
+                    AddErrors(result);
+                }
+            }
+            return View(model);
+        }
+
+        // Eliminar utilizador
+        public async Task<IActionResult> Delete(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+                return NotFound();
+            return View(user);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user != null)
+            {
+                var result = await _userManager.DeleteAsync(user);
+                if (result.Succeeded)
+                {
+                    return RedirectToAction(nameof(Index));
+                }
+                AddErrors(result);
+            }
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Login
@@ -69,7 +205,7 @@ namespace CondoVision.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterNewUserViewModel model)
+        public async Task<IActionResult> Register(RegisterUserViewModel model)
         {
             if (ModelState.IsValid)
             {
@@ -112,6 +248,7 @@ namespace CondoVision.Web.Controllers
 
         // Logout
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
@@ -231,7 +368,7 @@ namespace CondoVision.Web.Controllers
             }
         }
 
-        [Authorize(Roles = "AdminCompany")]
+        [Authorize(Roles = "CompanyAdmin")]
         public async Task<IActionResult> ManageRoles(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -250,7 +387,7 @@ namespace CondoVision.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "AdminCompany")]
+        [Authorize(Roles = "CompanyAdmin")]
         public async Task<IActionResult> ManageRoles(ManageRolesViewModel model)
         {
             if (string.IsNullOrEmpty(model.UserId))

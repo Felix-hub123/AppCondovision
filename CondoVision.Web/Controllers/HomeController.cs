@@ -1,6 +1,8 @@
+using CondoVision.Data.Entities;
 using CondoVision.Data.Helper;
 using CondoVision.Web.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -10,13 +12,16 @@ public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
     private readonly IUserHelper _userHelper;
+    private readonly UserManager<User> _userManager;
 
     public HomeController(
         ILogger<HomeController> logger,
-        IUserHelper userHelper)
+        IUserHelper userHelper,
+        UserManager<User> userManager)
     {
         _logger = logger;
         _userHelper = userHelper;
+        _userManager = userManager;
     }
 
     public IActionResult Index()
@@ -24,7 +29,7 @@ public class HomeController : Controller
         if (User.Identity != null && User.Identity.IsAuthenticated)
         {
             _logger.LogInformation("Utilizador autenticado, redirecionando para Painel.");
-          
+            ViewData["UserManager"] = _userManager; 
             return RedirectToAction("Painel", "Home");
         }
         _logger.LogInformation("Utilizador não autenticado, mostrando a página inicial.");
@@ -42,39 +47,47 @@ public class HomeController : Controller
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
 
-    [Authorize] 
+    [Authorize]
     public IActionResult Painel()
     {
-        
         if (!User.Identity!.IsAuthenticated)
         {
-          
+            _logger.LogWarning("Tentativa de acesso ao Painel sem autenticação, redirecionando para Index.");
             return RedirectToAction("Index", "Home");
         }
 
-      
+        ViewData["UserManager"] = _userManager; 
+
         if (User.IsInRole("CompanyAdmin"))
         {
-           
-            return RedirectToAction("Index", "CompanyAdmin"); 
+            _logger.LogInformation("Utilizador CompanyAdmin redirecionado para CompanyAdmin/Index.");
+            return RedirectToAction("Index", "CompanyAdmin");
         }
         else if (User.IsInRole("CondoManager"))
         {
-           
-            return RedirectToAction("Index", "CondoManager"); 
+            _logger.LogInformation("Utilizador CondoManager redirecionado para CondoManager/Index.");
+            return RedirectToAction("Index", "CondoManager");
         }
         else if (User.IsInRole("CondoOwner"))
         {
-            
-            return RedirectToAction("Index", "CondoOwner"); // Assumindo CondoOwnerController
+            _logger.LogInformation("Utilizador CondoOwner redirecionado para CondoOwner/Index.");
+            return RedirectToAction("Index", "CondoOwner");
         }
-       
 
-        // 3. Redirecionamento padrão para utilizadores autenticados sem uma role específica
-        // Se o utilizador está autenticado mas não tem nenhuma das roles acima,
-        // ou tem uma role não coberta, pode redirecionar para uma página geral de dashboard
-        // ou de volta para a Index (que pode ser um dashboard simples para todos os logados)
-        return RedirectToAction("Index", "Home");
+       
+        _logger.LogWarning("Utilizador autenticado sem role específica, redirecionando para DashboardGenérico.");
+        return RedirectToAction("GenericDashBoard", "Home");
+    }
+
+    public IActionResult GenericDashBoard()
+    {
+        if (!User.Identity!.IsAuthenticated)
+        {
+            return RedirectToAction("Index", "Home");
+        }
+        _logger.LogInformation("Exibindo DashboardGenérico para utilizador autenticado sem role específica.");
+        ViewData["UserManager"] = _userManager; // Passar UserManager para o layout
+        return View();
     }
 
 

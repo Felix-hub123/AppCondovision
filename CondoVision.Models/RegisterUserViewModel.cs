@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CondoVision.Models
 {
-    public class RegisterNewUserViewModel
+    public class RegisterUserViewModel
     {
         [Required(ErrorMessage = "O nome completo é obrigatório.")]
         [Display(Name = "Nome Completo")]

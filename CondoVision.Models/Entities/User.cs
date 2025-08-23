@@ -29,10 +29,7 @@ namespace CondoVision.Data.Entities
         [Required]
         public string? UserType { get; set; }
 
-        /// <summary>
-        /// Navigation property for associated condominiums (if applicable, e.g., for managers).
-        /// </summary>
-        public ICollection<CondominiumUser>? AssociatedCondominiums { get; set; }
+       
 
         [Display(Name = "Image")]
         public Guid? ImageId { get; set; } 
@@ -41,7 +38,6 @@ namespace CondoVision.Data.Entities
 
      
         public ICollection<Unit>? OwnedUnits { get; set; }
-        public ICollection<Condominium>? ManagedCondominiums { get; set; }
 
         public string ImageFullPath => ImageId == Guid.Empty
             ? $"/images/users/noimage.png"
@@ -54,6 +50,12 @@ namespace CondoVision.Data.Entities
 
 
         public ICollection<Unit>? Units { get; set; }
+
+
+        /// <summary>
+        /// Navigation property for associated condominiums (if applicable, e.g., for managers).
+        /// </summary>
+
         public ICollection<CondominiumUser>? CondominiumUsers { get; set; }
     }
 }

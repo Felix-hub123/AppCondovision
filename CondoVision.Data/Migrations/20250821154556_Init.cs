@@ -70,7 +70,7 @@ namespace CondoVision.Data.Migrations
                     Contact = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     LogoId = table.Column<Guid>(type: "uniqueidentifier", maxLength: 100, nullable: true),
                     CreationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    WasDeleted = table.Column<bool>(type: "bit", nullable: false)
+                    WasDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {
@@ -95,7 +95,7 @@ namespace CondoVision.Data.Migrations
                         column: x => x.RoleId,
                         principalTable: "AspNetRoles",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -116,7 +116,7 @@ namespace CondoVision.Data.Migrations
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -136,7 +136,7 @@ namespace CondoVision.Data.Migrations
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -154,13 +154,13 @@ namespace CondoVision.Data.Migrations
                         column: x => x.RoleId,
                         principalTable: "AspNetRoles",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_AspNetUserRoles_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -180,7 +180,7 @@ namespace CondoVision.Data.Migrations
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -193,40 +193,34 @@ namespace CondoVision.Data.Migrations
                     Address = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     City = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     PostalCode = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    CompanyId = table.Column<int>(type: "int", nullable: false),
+                    CompanyId = table.Column<int>(type: "int", nullable: true),
                     RegistrationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    WasDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    WasDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Condominiums", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Condominiums_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
                         name: "FK_Condominiums_Companies_CompanyId",
                         column: x => x.CompanyId,
                         principalTable: "Companies",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
                 name: "CondominiumUsers",
                 columns: table => new
                 {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     CondominiumId = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Id = table.Column<int>(type: "int", nullable: false),
-                    WasDeleted = table.Column<bool>(type: "bit", nullable: false)
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    WasDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CondominiumUsers", x => new { x.CondominiumId, x.UserId });
+                    table.PrimaryKey("PK_CondominiumUsers", x => x.Id);
                     table.ForeignKey(
                         name: "FK_CondominiumUsers_AspNetUsers_UserId",
                         column: x => x.UserId,
@@ -238,7 +232,7 @@ namespace CondoVision.Data.Migrations
                         column: x => x.CondominiumId,
                         principalTable: "Condominiums",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -251,7 +245,8 @@ namespace CondoVision.Data.Migrations
                     Permillage = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
                     OwnerId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     CondominiumId = table.Column<int>(type: "int", nullable: false),
-                    WasDeleted = table.Column<bool>(type: "bit", nullable: false)
+                    WasDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -263,11 +258,16 @@ namespace CondoVision.Data.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
+                        name: "FK_Units_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
                         name: "FK_Units_Condominiums_CondominiumId",
                         column: x => x.CondominiumId,
                         principalTable: "Condominiums",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -315,9 +315,9 @@ namespace CondoVision.Data.Migrations
                 column: "CompanyId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Condominiums_UserId",
-                table: "Condominiums",
-                column: "UserId");
+                name: "IX_CondominiumUsers_CondominiumId",
+                table: "CondominiumUsers",
+                column: "CondominiumId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CondominiumUsers_UserId",
@@ -333,6 +333,11 @@ namespace CondoVision.Data.Migrations
                 name: "IX_Units_OwnerId",
                 table: "Units",
                 column: "OwnerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Units_UserId",
+                table: "Units",
+                column: "UserId");
         }
 
         /// <inheritdoc />
@@ -363,10 +368,10 @@ namespace CondoVision.Data.Migrations
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "Condominiums");
+                name: "AspNetUsers");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "Condominiums");
 
             migrationBuilder.DropTable(
                 name: "Companies");

@@ -122,21 +122,18 @@ namespace CondoVision.Data.Helper
         }
 
         /// <summary>
-        /// Converte um RegisterNewUserViewModel para uma entidade User.
+        /// Converte um RegisterUserViewModel para uma entidade User.
         /// </summary>
-        public User ToUser(RegisterNewUserViewModel model)
+        public User ToUser(RegisterUserViewModel model)
         {
             return new User
             {
-                // Mapeia as propriedades do ViewModel para a entidade User
                 FullName = model.FullName,
-                Email = model.Username,    // O Username do ViewModel é o Email do User
-                UserName = model.Username, // O Username do ViewModel é o UserName do User
+                Email = model.Username,
+                UserName = model.Username,
                 PhoneNumber = model.PhoneNumber,
-
-                // Outras propriedades com valores padrão para um novo registo
-                EmailConfirmed = false,     // Por padrão, não confirmado até o utilizador clicar no link
-                WasDeleted = false          // Por padrão, não eliminado
+                EmailConfirmed = false,
+                WasDeleted = false
             };
         }
 
@@ -164,11 +161,6 @@ namespace CondoVision.Data.Helper
             existingUser.FullName = model.FullName;
             existingUser.PhoneNumber = model.PhoneNumber;
             existingUser.ImageId = model.ImageId;
-
-            // O Email (UserName) geralmente não é alterado através da edição de perfil simples,
-            // pois está ligado à identidade e pode exigir um processo de validação separado.
-            // existingUser.Email = model.Email; // Não descomentar a menos que tenha um fluxo para isso
-            // existingUser.UserName = model.Email; // Não descomentar a menos que tenha um fluxo para isso
 
             return existingUser;
         }
@@ -250,12 +242,70 @@ namespace CondoVision.Data.Helper
             return model;
         }
 
+        public List<UserListViewModel> ToUserListViewModel(List<User> users)
+        {
+            return users.Select(u => new UserListViewModel
+            {
+                Id = u.Id,
+                FullName = u.FullName,
+                Email = u.Email,
+                PhoneNumber = u.PhoneNumber
+            }).ToList();
+        }
+
         private async Task<IEnumerable<SelectListItem>> GetCompaniesSelectList()
         {
             return (await _companyRepository.GetAllCompaniesAsync())
                 .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name });
         }
 
-       
+        public UnitViewModel ToViewModel(Unit unit)
+        {
+            if (unit == null)
+                return null;
+            return new UnitViewModel
+            {
+                Id = unit.Id,
+                UnitName = unit.UnitName,
+                Permillage = unit.Permillage,
+                OwnerId = unit.OwnerId,
+                OwnerFullName = unit.Owner?.FullName,
+                CondominiumId = unit.CondominiumId,
+                CondominiumName = unit.Condominium?.Name
+            };
+        }
+
+        public IEnumerable<UnitViewModel> ToViewModel(IEnumerable<Unit> units)
+        {
+            return units?.Select(ToViewModel) ?? Enumerable.Empty<UnitViewModel>();
+        }
+
+        public Unit ToEntity(UnitViewModel model)
+        {
+            if (model == null)
+                return null;
+            return new Unit
+            {
+                Id = model.Id ?? 0,
+                UnitName = model.UnitName,
+                Permillage = model.Permillage,
+                OwnerId = model.OwnerId,
+                CondominiumId = model.CondominiumId
+            };
+        }
+
+        public void UpdateUnit(Unit unit, UnitViewModel model)
+        {
+            if (unit == null || model == null)
+                return;
+
+            unit.UnitName = model.UnitName;
+            unit.Permillage = model.Permillage;
+            unit.OwnerId = model.OwnerId;
+            unit.CondominiumId = model.CondominiumId; 
+        }
     }
+
+
 }
+

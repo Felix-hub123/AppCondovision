@@ -23,9 +23,16 @@ namespace CondoVision.Data
         }
 
         public DbSet<Condominium> Condominiums { get; set; }
+
         public DbSet<Unit> Units { get; set; }
+
         public DbSet<CondominiumUser> CondominiumUsers { get; set; }
+
         public DbSet<Company> Companies { get; set; }
+
+    
+
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -33,7 +40,7 @@ namespace CondoVision.Data
 
             modelBuilder.Entity<Company>().HasKey(c => c.Id);
             modelBuilder.Entity<Condominium>().HasKey(c => c.Id);
-            modelBuilder.Entity<CondominiumUser>().HasKey(cu => new { cu.CondominiumId, cu.UserId });
+            modelBuilder.Entity<CondominiumUser>().HasKey(cu => cu.Id); 
             modelBuilder.Entity<Unit>().HasKey(u => u.Id);
 
             // Configuração de CondominiumUser
@@ -45,11 +52,9 @@ namespace CondoVision.Data
 
             modelBuilder.Entity<CondominiumUser>()
                 .HasOne(cu => cu.User)
-                .WithMany(u => u.CondominiumUsers)
+                .WithMany(u => u.CondominiumUsers) 
                 .HasForeignKey(cu => cu.UserId)
-                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
-
             // Configuração de Unit
             modelBuilder.Entity<Unit>()
                 .HasOne(u => u.Condominium)
@@ -59,21 +64,27 @@ namespace CondoVision.Data
 
             modelBuilder.Entity<Unit>()
                 .HasOne(u => u.Owner)
-                .WithMany() // Ajuste para WithMany(u => u.Units) se User tiver Units
+                .WithMany(u => u.Units)
                 .HasForeignKey(u => u.OwnerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-           
+            // Configuração de Condominium
+            modelBuilder.Entity<Condominium>()
+                .HasOne(c => c.Company)
+                .WithMany(c => c.Condominiums)
+                .HasForeignKey(c => c.CompanyId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            // Configurações de default para WasDeleted
+            // Configuração de valores padrão
             modelBuilder.Entity<Company>().Property(c => c.WasDeleted).HasDefaultValue(false);
             modelBuilder.Entity<Condominium>().Property(c => c.WasDeleted).HasDefaultValue(false);
             modelBuilder.Entity<CondominiumUser>().Property(cu => cu.WasDeleted).HasDefaultValue(false);
             modelBuilder.Entity<Unit>().Property(u => u.WasDeleted).HasDefaultValue(false);
         }
     }
-
 }
+
+
 
 
 

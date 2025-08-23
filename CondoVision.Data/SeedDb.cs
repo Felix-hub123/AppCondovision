@@ -13,17 +13,20 @@ namespace CondoVision.Data
         private readonly IUserHelper _userHelper;
         private readonly ILogger<SeedDb> _logger;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly UserManager<User> _userManager;
 
         public SeedDb(
             DataContext context,
             IUserHelper userHelper,
             ILogger<SeedDb> logger,
-            RoleManager<IdentityRole> roleManager)
+            RoleManager<IdentityRole> roleManager,
+             UserManager<User> userManager)
         {
             _context = context;
             _userHelper = userHelper;
             _logger = logger;
             _roleManager = roleManager;
+            _userManager = userManager;
         }
 
 
@@ -37,6 +40,7 @@ namespace CondoVision.Data
                 await CheckCondominiumAsync();
                 await SeedUsersAsync();
                 await SeedCondominiumUsersAndUnitsAsync();
+                _logger.LogInformation("Seeding concluído com sucesso.");
             }
             catch (Exception ex)
             {
@@ -105,31 +109,23 @@ namespace CondoVision.Data
 
         private async Task<User?> EnsureUserWithRoleAsync(string email, string password, string roleName, string fullName, bool emailConfirmed, bool wasDeleted, string phoneNumber)
         {
-            var company = await _context.Companies.FirstOrDefaultAsync();
-            if (company == null)
-            {
-                _logger.LogWarning($"Nenhuma empresa encontrada para associar ao utilizador {email}. O utilizador não será criado.");
-                return null;
-            }
-
-            var user = await _userHelper.GetUserByEmailAsync(email);
+            var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
             {
                 user = new User
                 {
                     FullName = fullName,
+                    UserType = roleName, 
                     Email = email,
                     UserName = email,
                     EmailConfirmed = emailConfirmed,
                     WasDeleted = wasDeleted,
-                    UserType = roleName,
-                    PhoneNumber = phoneNumber // Uso correto do parâmetro
+                    PhoneNumber = phoneNumber
                 };
-
-                var result = await _userHelper.AddUserAsync(user, password);
+                var result = await _userManager.CreateAsync(user, password);
                 if (result.Succeeded)
                 {
-                    await _userHelper.AddUserToRoleAsync(user, roleName);
+                    await _userManager.AddToRoleAsync(user, roleName);
                     _logger.LogInformation($"Utilizador '{fullName}' ({email}) com role '{roleName}' criado com sucesso.");
                     return user;
                 }
@@ -143,14 +139,14 @@ namespace CondoVision.Data
             else
             {
                 _logger.LogInformation($"Utilizador '{fullName}' ({email}) já existe. Verificando role...");
-                if (!await _userHelper.IsUserInRoleAsync(user, roleName))
+                if (!await _userManager.IsInRoleAsync(user, roleName))
                 {
-                    await _userHelper.AddUserToRoleAsync(user, roleName);
+                    await _userManager.AddToRoleAsync(user, roleName);
                     _logger.LogInformation($"Utilizador '{fullName}' ({email}) adicionado à role '{roleName}'.");
                 }
                 if (string.IsNullOrEmpty(user.PhoneNumber))
                 {
-                    user.PhoneNumber = phoneNumber; // Uso correto do parâmetro
+                    user.PhoneNumber = phoneNumber;
                     await _context.SaveChangesAsync();
                     _logger.LogInformation($"Número de telefone '{phoneNumber}' adicionado ao utilizador '{fullName}' ({email}).");
                 }
@@ -184,12 +180,13 @@ namespace CondoVision.Data
                 return;
             }
 
-            var manager = await _userHelper.GetUserByEmailAsync("condomanager@condovision.pt");
-            var owner = await _userHelper.GetUserByEmailAsync("condoowner@condovision.pt");
-            var condomini = await _userHelper.GetUserByEmailAsync("condomino@condovision.pt");
+            var manager = await _userManager.FindByEmailAsync("condomanager@condovision.pt");
+            var owner = await _userManager.FindByEmailAsync("condoowner@condovision.pt");
+            var condomini = await _userManager.FindByEmailAsync("condomino@condovision.pt");
 
             if (manager != null && owner != null && condomini != null)
             {
+                
                 if (!await _context.CondominiumUsers.AnyAsync(cu => cu.CondominiumId == condominiums[0].Id && cu.UserId == manager.Id))
                 {
                     var condoManager = new CondominiumUser
@@ -205,6 +202,7 @@ namespace CondoVision.Data
                     _logger.LogInformation($"Associação entre Condomínio {condominiums[0].Id} e Gestor {manager.Id} já existe.");
                 }
 
+                
                 if (!await _context.CondominiumUsers.AnyAsync(cu => cu.CondominiumId == condominiums[0].Id && cu.UserId == condomini.Id))
                 {
                     var condoUser = new CondominiumUser
@@ -220,30 +218,52 @@ namespace CondoVision.Data
                     _logger.LogInformation($"Associação entre Condomínio {condominiums[0].Id} e Condómino {condomini.Id} já existe.");
                 }
 
-                var unit1 = new Unit
-                {
-                    UnitName = "A",
-                    Permillage = 50.00m,
-                    CondominiumId = condominiums[0].Id,
-                    OwnerId = owner.Id,
-                    WasDeleted = false
-                };
-                var unit2 = new Unit
-                {
-                    UnitName = "B",
-                    Permillage = 50.00m,
-                    CondominiumId = condominiums[0].Id,
-                    OwnerId = owner.Id,
-                    WasDeleted = false
-                };
-                _context.Units.AddRange(unit1, unit2);
+              
+                var unitAExists = await _context.Units.AnyAsync(u => u.CondominiumId == condominiums[0].Id && u.UnitName == "A" && !u.WasDeleted);
+                var unitBExists = await _context.Units.AnyAsync(u => u.CondominiumId == condominiums[0].Id && u.UnitName == "B" && !u.WasDeleted);
 
-                await _context.SaveChangesAsync();
-                _logger.LogInformation("Gestor, condómino e unidades associados ao condomínio com sucesso.");
+                if (!unitAExists || !unitBExists)
+                {
+                    if (!unitAExists)
+                    {
+                        var unit1 = new Unit
+                        {
+                            UnitName = "A",
+                            Permillage = 50.00m,
+                            CondominiumId = condominiums[0].Id,
+                            OwnerId = owner.Id,
+                            WasDeleted = false
+                        };
+                        _context.Units.Add(unit1);
+                        _logger.LogInformation("Unidade A adicionada ao Condomínio {CondominiumId}.", condominiums[0].Id);
+                    }
+                    if (!unitBExists)
+                    {
+                        var unit2 = new Unit
+                        {
+                            UnitName = "B",
+                            Permillage = 50.00m,
+                            CondominiumId = condominiums[0].Id,
+                            OwnerId = owner.Id,
+                            WasDeleted = false
+                        };
+                        _context.Units.Add(unit2);
+                        _logger.LogInformation("Unidade B adicionada ao Condomínio {CondominiumId}.", condominiums[0].Id);
+                    }
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation("Unidades A e/ou B adicionadas ao Condomínio {CondominiumId} com sucesso.", condominiums[0].Id);
+                }
+                else
+                {
+                    _logger.LogInformation("Unidades A e B já existem para o Condomínio {CondominiumId}.", condominiums[0].Id);
+                }
             }
         }
     }
 }
+
+    
+
 
 
 

@@ -33,6 +33,7 @@ namespace CondoVision.Data.Entities
         [ForeignKey("CondominiumId")]
         public Condominium? Condominium { get; set; }
 
+
         public bool WasDeleted { get; set; }
     }
 }

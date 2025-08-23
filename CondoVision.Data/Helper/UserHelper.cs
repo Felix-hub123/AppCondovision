@@ -309,7 +309,7 @@ namespace CondoVision.Data.Helper
         {
             return await _userManager.Users
                  .Include(u => u.OwnedUnits)
-                .Include(u => u.ManagedCondominiums)
+                .Include(u => u.CondominiumUsers)
                 .FirstOrDefaultAsync(u => u.Id == userId);
         }
 
