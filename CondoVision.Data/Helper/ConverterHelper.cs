@@ -2,6 +2,7 @@
 using CondoVision.Models;
 using CondoVision.Models.Entities;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -304,6 +305,53 @@ namespace CondoVision.Data.Helper
             unit.OwnerId = model.OwnerId;
             unit.CondominiumId = model.CondominiumId; 
         }
+
+
+        public FractionOwner ToFractionOwner(FractionOwnerViewModel viewModel)
+        {
+            if (viewModel == null)
+                return null!;
+
+            return new FractionOwner
+            {
+                Id = viewModel.Id,
+                UnitNumber = viewModel.UnitNumber,
+                FractionFloor = viewModel.FractionFloor,
+                FractionBlock = viewModel.FractionBlock,
+                UnitId = viewModel.UnitId,
+                UserId = viewModel.UserId,
+                OwnerFullName = viewModel.OwnerFullName,
+                OwnerEmail = viewModel.OwnerEmail,
+                WasDeleted = viewModel.WasDeleted
+            };
+        }
+
+        public FractionOwnerViewModel ToFractionOwnerViewModel(FractionOwner fractionOwner)
+        {
+            if (fractionOwner == null)
+                return null!;
+
+            return new FractionOwnerViewModel
+            {
+                Id = fractionOwner.Id,
+                UnitNumber = fractionOwner.UnitNumber,
+                FractionFloor = fractionOwner.FractionFloor,
+                FractionBlock = fractionOwner.FractionBlock,
+                UnitId = fractionOwner.UnitId,
+                UserId = fractionOwner.UserId,
+                OwnerFullName = fractionOwner.OwnerFullName,
+                OwnerEmail = fractionOwner.OwnerEmail,
+                WasDeleted = fractionOwner.WasDeleted,
+                CondominiumName = fractionOwner.Unit?.Condominium?.Name
+            };
+        }
+
+        public IEnumerable<FractionOwnerViewModel> ToFractionOwnerViewModelList(IEnumerable<FractionOwner> fractionOwners)
+        {
+            return fractionOwners?.Select(ToFractionOwnerViewModel) ?? Enumerable.Empty<FractionOwnerViewModel>();
+        }
+
+
     }
 
 

@@ -1,0 +1,73 @@
+﻿@model CondoVision.Models.FractionOwnerViewModel
+
+@{
+    ViewData["Title"] = "Editar Proprietário";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<form asp-action="Edit" method="post">
+    <div class="row">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="Id" />
+
+        <div class="form-group col-md-6">
+            <label asp-for="UnitId" class="control-label"></label>
+            <select asp-for="UnitId" class="form-control" asp-items="ViewBag.Units as SelectList">
+                <option value="">Selecione uma unidade</option>
+            </select>
+            <span asp-validation-for="UnitId" class="text-danger"></span>
+        </div>
+
+        <div class="form-group col-md-6">
+            <label asp-for="UserId" class="control-label"></label>
+            <input asp-for="UserId" class="form-control" />
+            <span asp-validation-for="UserId" class="text-danger"></span>
+        </div>
+
+        <div class="form-group col-md-6">
+            <label asp-for="UnitNumber" class="control-label"></label>
+            <input asp-for="UnitNumber" class="form-control" />
+            <span asp-validation-for="UnitNumber" class="text-danger"></span>
+        </div>
+
+        <div class="form-group col-md-6">
+            <label asp-for="FractionFloor" class="control-label"></label>
+            <input asp-for="FractionFloor" class="form-control" />
+            <span asp-validation-for="FractionFloor" class="text-danger"></span>
+        </div>
+
+        <div class="form-group col-md-6">
+            <label asp-for="FractionBlock" class="control-label"></label>
+            <input asp-for="FractionBlock" class="form-control" />
+            <span asp-validation-for="FractionBlock" class="text-danger"></span>
+        </div>
+
+        <div class="form-group col-md-6">
+            <label asp-for="OwnerFullName" class="control-label"></label>
+            <input asp-for="OwnerFullName" class="form-control" />
+            <span asp-validation-for="OwnerFullName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group col-md-6">
+            <label asp-for="OwnerEmail" class="control-label"></label>
+            <input asp-for="OwnerEmail" class="form-control" />
+            <span asp-validation-for="OwnerEmail" class="text-danger"></span>
+        </div>
+
+        <div class="form-group col-md-6">
+            <label asp-for="WasDeleted" class="control-label"></label>
+            <input asp-for="WasDeleted" type="checkbox" class="form-check-input" />
+            <span asp-validation-for="WasDeleted" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <input type="submit" value="Salvar" class="btn btn-primary" />
+        <a asp-action="Index" class="btn btn-secondary">Voltar</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

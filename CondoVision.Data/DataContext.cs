@@ -32,6 +32,8 @@ namespace CondoVision.Data
 
         public DbSet<RecentActivity> RecentActivities { get; set; }
 
+        public DbSet<FractionOwner> FractionOwners { get; set; }
+
 
 
 

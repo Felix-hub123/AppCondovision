@@ -47,5 +47,11 @@ namespace CondoVision.Data.Helper
         Unit ToEntity(UnitViewModel model);
 
         void UpdateUnit(Unit unit, UnitViewModel model);
+
+        FractionOwner ToFractionOwner(FractionOwnerViewModel viewModel);
+
+        FractionOwnerViewModel ToFractionOwnerViewModel(FractionOwner fractionOwner);
+
+        IEnumerable<FractionOwnerViewModel> ToFractionOwnerViewModelList(IEnumerable<FractionOwner> fractionOwners);
     }
 }

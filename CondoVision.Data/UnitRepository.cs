@@ -21,5 +21,12 @@ namespace CondoVision.Data
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Unit>> GetAllActiveAsync()
+        {
+            return await _context.Units
+                .Where(u => !u.WasDeleted)
+                .ToListAsync();
+        }
+
     }
 }
