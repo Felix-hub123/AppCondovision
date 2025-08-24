@@ -16,5 +16,13 @@ namespace CondoVision.Models
         public List<int?> UnitCondominiumIds { get; set; } = new();
         public List<int?> UnitCounts { get; set; } = new();
         public List<ActivityViewModel> RecentActivities { get; set; } = new();
+
+        public List<string>? FractionOwnerLabels { get; set; }
+
+        public List<int>? FractionOwnerCounts { get; set; }
+
+       
+        public int FractionsCount { get; set; }
+        public int FractionOwnersCount { get; set; }
     }
 }

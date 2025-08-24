@@ -64,6 +64,7 @@ builder.Services.AddScoped<IEMailHelper, EMailHelper>();
 builder.Services.AddScoped<IBlobHelper, BlobHelper>();
 builder.Services.AddScoped<IUserRepository, UserRepository>(); 
 builder.Services.AddScoped<IUnitRepository, UnitRepository>();
+builder.Services.AddScoped<IFractionOwnerRepository, FractionOwnerRepository>();
 builder.Services.AddTransient<SeedDb>();
 
 var app = builder.Build();

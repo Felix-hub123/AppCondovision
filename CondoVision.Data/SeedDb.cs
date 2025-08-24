@@ -219,43 +219,58 @@ namespace CondoVision.Data
                 }
 
 
-                var unitAExists = await _context.Units.AnyAsync(u => u.CondominiumId == condominiums[0].Id && u.UnitName == "A" && !u.WasDeleted);
-                var unitBExists = await _context.Units.AnyAsync(u => u.CondominiumId == condominiums[0].Id && u.UnitName == "B" && !u.WasDeleted);
+               
+                var unitA = await _context.Units.FirstOrDefaultAsync(u => u.CondominiumId == condominiums[0].Id && u.UnitName == "A" && !u.WasDeleted);
+                var unitB = await _context.Units.FirstOrDefaultAsync(u => u.CondominiumId == condominiums[0].Id && u.UnitName == "B" && !u.WasDeleted);
 
-                if (!unitAExists || !unitBExists)
+                if (unitA != null && unitB != null)
                 {
-                    if (!unitAExists)
+                    
+                    if (!await _context.FractionOwners.AnyAsync(fo => fo.UnitId == unitA.Id && !fo.WasDeleted))
                     {
-                        var unit1 = new Unit
+                        var fractionOwnerA = new FractionOwner
                         {
-                            UnitName = "A",
-                            Permillage = 50.00m,
-                            CondominiumId = condominiums[0].Id,
-                            OwnerId = owner.Id,
+                            UnitId = unitA.Id,
+                            UserId = owner.Id, 
+                            UnitNumber = unitA.UnitName!,
+                            FractionFloor = "1", 
+                            FractionBlock = "A", 
+                            OwnerFullName = owner.UserName!, 
+                            OwnerEmail = owner.Email!,
                             WasDeleted = false
                         };
-                        _context.Units.Add(unit1);
-                        _logger.LogInformation("Unidade A adicionada ao Condomínio {CondominiumId}.", condominiums[0].Id);
+                        _context.FractionOwners.Add(fractionOwnerA);
+                        _logger.LogInformation("Proprietário adicionado para a Unidade A no Condomínio {CondominiumId}.", condominiums[0].Id);
                     }
-                    if (!unitBExists)
+                    else
                     {
-                        var unit2 = new Unit
+                        _logger.LogInformation("Proprietário para a Unidade A já existe no Condomínio {CondominiumId}.", condominiums[0].Id);
+                    }
+
+                    
+                    if (!await _context.FractionOwners.AnyAsync(fo => fo.UnitId == unitB.Id && !fo.WasDeleted))
+                    {
+                        var fractionOwnerB = new FractionOwner
                         {
-                            UnitName = "B",
-                            Permillage = 50.00m,
-                            CondominiumId = condominiums[0].Id,
-                            OwnerId = owner.Id,
+                            UnitId = unitB.Id,
+                            UserId = condomini.Id, 
+                            UnitNumber = unitB.UnitName!,
+                            FractionFloor = "2", 
+                            FractionBlock = "B", 
+                            OwnerFullName = condomini.UserName!, 
+                            OwnerEmail = condomini.Email!,
                             WasDeleted = false
                         };
-                        _context.Units.Add(unit2);
-                        _logger.LogInformation("Unidade B adicionada ao Condomínio {CondominiumId}.", condominiums[0].Id);
+                        _context.FractionOwners.Add(fractionOwnerB);
+                        _logger.LogInformation("Proprietário adicionado para a Unidade B no Condomínio {CondominiumId}.", condominiums[0].Id);
                     }
+                    else
+                    {
+                        _logger.LogInformation("Proprietário para a Unidade B já existe no Condomínio {CondominiumId}.", condominiums[0].Id);
+                    }
+
                     await _context.SaveChangesAsync();
-                    _logger.LogInformation("Unidades A e/ou B adicionadas ao Condomínio {CondominiumId} com sucesso.", condominiums[0].Id);
-                }
-                else
-                {
-                    _logger.LogInformation("Unidades A e B já existem para o Condomínio {CondominiumId}.", condominiums[0].Id);
+                    _logger.LogInformation("Proprietários de frações adicionados ao Condomínio {CondominiumId} com sucesso.", condominiums[0].Id);
                 }
 
 
@@ -279,7 +294,7 @@ namespace CondoVision.Data
                         {
                              UserName = condomini.UserName,
                              Action = "Eliminou Fração",
-                             Date = DateTime.Now.AddDays(-1) // 1 dia atrás
+                             Date = DateTime.Now.AddDays(-1) 
                         }
                     };
                     _context.RecentActivities.AddRange(activities);

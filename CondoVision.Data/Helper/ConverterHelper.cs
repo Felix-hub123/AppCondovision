@@ -320,9 +320,7 @@ namespace CondoVision.Data.Helper
                 FractionBlock = viewModel.FractionBlock,
                 UnitId = viewModel.UnitId,
                 UserId = viewModel.UserId,
-                OwnerFullName = viewModel.OwnerFullName,
-                OwnerEmail = viewModel.OwnerEmail,
-                WasDeleted = viewModel.WasDeleted
+                WasDeleted = false,
             };
         }
 
@@ -339,9 +337,6 @@ namespace CondoVision.Data.Helper
                 FractionBlock = fractionOwner.FractionBlock,
                 UnitId = fractionOwner.UnitId,
                 UserId = fractionOwner.UserId,
-                OwnerFullName = fractionOwner.OwnerFullName,
-                OwnerEmail = fractionOwner.OwnerEmail,
-                WasDeleted = fractionOwner.WasDeleted,
                 CondominiumName = fractionOwner.Unit?.Condominium?.Name
             };
         }

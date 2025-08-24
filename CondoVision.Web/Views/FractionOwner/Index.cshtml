@@ -1,56 +1,43 @@
-﻿@model CondoVision.Models.FractionOwnerListViewModel
+﻿@model IEnumerable<CondoVision.Models.FractionOwnerViewModel>
 
 @{
-    ViewData["Title"] = "Lista de Proprietários de Frações";
+    ViewData["Title"] = "Lista de Proprietários";
 }
 
 <h2>@ViewData["Title"]</h2>
 
 <p>
-    <a asp-action="Create" class="btn btn-primary">Novo Proprietário</a>
+    <a asp-action="Create" class="btn btn-primary">Criar Novo Proprietário</a>
 </p>
 
-@if (Model.FractionOwners!.Any())
-{
-    <table class="table table-striped">
-        <thead>
+<table class="table">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.UnitId)</th>
+            <th>@Html.DisplayNameFor(model => model.UserId)</th>
+            <th>@Html.DisplayNameFor(model => model.UnitNumber)</th>
+            <th>@Html.DisplayNameFor(model => model.FractionFloor)</th>
+            <th>@Html.DisplayNameFor(model => model.FractionBlock)</th>
+            <th>@Html.DisplayNameFor(model => model.CondominiumName)</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
             <tr>
-                <th>ID</th>
-                <th>Número da Unidade</th>
-                <th>Andar</th>
-                <th>Bloco</th>
-                <th>Condomínio</th>
-                <th>Nome do Proprietário</th>
-                <th>Email</th>
-                <th>Ações</th>
+                <td>@Html.DisplayFor(modelItem => item.UnitId)</td>
+                <td>@Html.DisplayFor(modelItem => item.UserId)</td>
+                <td>@Html.DisplayFor(modelItem => item.UnitNumber)</td>
+                <td>@Html.DisplayFor(modelItem => item.FractionFloor)</td>
+                <td>@Html.DisplayFor(modelItem => item.FractionBlock)</td>
+                <td>@Html.DisplayFor(modelItem => item.CondominiumName)</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Detalhes</a>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Editar</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Eliminar</a>
+                </td>
             </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model.FractionOwners!)
-            {
-                <tr>
-                    <td>@item.Id</td>
-                    <td>@item.UnitNumber</td>
-                    <td>@item.FractionFloor</td>
-                    <td>@item.FractionBlock</td>
-                    <td>@item.CondominiumName</td>
-                    <td>@item.OwnerFullName</td>
-                    <td>@item.OwnerEmail</td>
-                    <td>
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Editar</a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Excluir</a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-    <p>Total de proprietários ativos: @Model.TotalCount</p>
-}
-else
-{
-    <p>Nenhum proprietário ativo encontrado.</p>
-}
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
+        }
+    </tbody>
+</table>

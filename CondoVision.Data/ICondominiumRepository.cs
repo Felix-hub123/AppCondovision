@@ -10,7 +10,7 @@ namespace CondoVision.Data
     public interface ICondominiumRepository : IGenericRepository<Condominium>
     {
 
-
+        Task<IEnumerable<Condominium>> GetAllActiveAsync();
         Task<string?> GetCondominiumNameByIdAsync(int id);
 
         Task<IEnumerable<Condominium>> GetAllCondominiumsWithCompanyAsync();

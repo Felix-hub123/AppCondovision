@@ -13,6 +13,13 @@ namespace CondoVision.Models.Entities
 
         }
 
+        public async Task<IEnumerable<Condominium>> GetAllActiveAsync()
+        {
+            return await _context.Condominiums
+                .Where(c => !c.WasDeleted)
+                .ToListAsync();
+        }
+
 
 
         // Em CondominiumRepository.cs

@@ -441,3 +441,16 @@ body {
         font-size: 2rem;
     }
 }
+
+
+:root {
+    --cv-primary: #007bff;
+    --cv-secondary: #6c757d;
+    --cv-accent: #17a2b8;
+    --cv-dark: #343a40;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+}
+

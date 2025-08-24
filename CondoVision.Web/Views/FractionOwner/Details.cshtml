@@ -1,0 +1,37 @@
+﻿@model CondoVision.Models.FractionOwnerViewModel
+
+@{
+    ViewData["Title"] = "Detalhes do Proprietário";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<div class="row">
+    <div class="col-md-6">
+        <dl class="row">
+            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.UnitId)</dt>
+            <dd class="col-sm-8">@Html.DisplayFor(model => model.UnitId)</dd>
+
+            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.UserId)</dt>
+            <dd class="col-sm-8">@Html.DisplayFor(model => model.UserId)</dd>
+
+            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.UnitNumber)</dt>
+            <dd class="col-sm-8">@Html.DisplayFor(model => model.UnitNumber)</dd>
+
+            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.FractionFloor)</dt>
+            <dd class="col-sm-8">@Html.DisplayFor(model => model.FractionFloor)</dd>
+
+            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.FractionBlock)</dt>
+            <dd class="col-sm-8">@Html.DisplayFor(model => model.FractionBlock)</dd>
+
+            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.CondominiumName)</dt>
+            <dd class="col-sm-8">@Html.DisplayFor(model => model.CondominiumName)</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="form-group">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Editar</a>
+    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Eliminar</a>
+    <a asp-action="Index" class="btn btn-secondary">Voltar</a>
+</div>

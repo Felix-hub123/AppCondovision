@@ -140,10 +140,10 @@
     <script src="~/AdminLTE/plugins/chart.js/Chart.min.js" asp-append-version="true"></script>
     <script>
         $(function () {
-            // Serializar em camelCase para JS
+
             var dashboardData = @Html.Raw(JsonSerializer.Serialize(Model, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
 
-            // Gráfico de Barras
+
             var ctxBar = document.getElementById('myBarChart').getContext('2d');
             new Chart(ctxBar, {
                 type: 'bar',
@@ -164,7 +164,6 @@
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
             });
 
-            // Gráfico Linhas Unidades
             var ctxLine = document.getElementById('myLineChart').getContext('2d');
             new Chart(ctxLine, {
                 type: 'line',
