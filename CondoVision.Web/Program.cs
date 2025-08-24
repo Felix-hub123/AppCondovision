@@ -34,14 +34,14 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 builder.Services.AddAuthentication()
     .AddGoogle(options =>
     {
-        var clientId = builder.Configuration["Google:ClientId"];
+        var clientId = builder.Configuration["Authentication:Google:ClientId"];
         if (string.IsNullOrEmpty(clientId))
         {
             throw new ArgumentNullException("Google:ClientId não foi configurado em appsettings.json.");
         }
         options.ClientId = clientId;
 
-        var clientSecret = builder.Configuration["Google:ClientSecret"];
+        var clientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
         if (string.IsNullOrEmpty(clientSecret))
         {
             throw new ArgumentNullException("Google:ClientSecret não foi configurado em appsettings.json.");
@@ -54,6 +54,7 @@ builder.Services.AddAuthentication()
         options.ExpireTimeSpan = TimeSpan.FromDays(30); // 30 dias
         options.SlidingExpiration = true;
     });
+
 
 builder.Services.AddScoped<IUserHelper, UserHelper>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
