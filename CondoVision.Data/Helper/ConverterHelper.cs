@@ -262,7 +262,7 @@ namespace CondoVision.Data.Helper
         public UnitViewModel ToViewModel(Unit unit)
         {
             if (unit == null)
-                return null;
+                return null!;
             return new UnitViewModel
             {
                 Id = unit.Id,
@@ -283,7 +283,7 @@ namespace CondoVision.Data.Helper
         public Unit ToEntity(UnitViewModel model)
         {
             if (model == null)
-                return null;
+                return null!;
             return new Unit
             {
                 Id = model.Id ?? 0,

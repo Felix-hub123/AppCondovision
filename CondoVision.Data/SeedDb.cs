@@ -115,7 +115,7 @@ namespace CondoVision.Data
                 user = new User
                 {
                     FullName = fullName,
-                    UserType = roleName, 
+                    UserType = roleName,
                     Email = email,
                     UserName = email,
                     EmailConfirmed = emailConfirmed,
@@ -186,7 +186,7 @@ namespace CondoVision.Data
 
             if (manager != null && owner != null && condomini != null)
             {
-                
+
                 if (!await _context.CondominiumUsers.AnyAsync(cu => cu.CondominiumId == condominiums[0].Id && cu.UserId == manager.Id))
                 {
                     var condoManager = new CondominiumUser
@@ -202,7 +202,7 @@ namespace CondoVision.Data
                     _logger.LogInformation($"Associação entre Condomínio {condominiums[0].Id} e Gestor {manager.Id} já existe.");
                 }
 
-                
+
                 if (!await _context.CondominiumUsers.AnyAsync(cu => cu.CondominiumId == condominiums[0].Id && cu.UserId == condomini.Id))
                 {
                     var condoUser = new CondominiumUser
@@ -218,7 +218,7 @@ namespace CondoVision.Data
                     _logger.LogInformation($"Associação entre Condomínio {condominiums[0].Id} e Condómino {condomini.Id} já existe.");
                 }
 
-              
+
                 var unitAExists = await _context.Units.AnyAsync(u => u.CondominiumId == condominiums[0].Id && u.UnitName == "A" && !u.WasDeleted);
                 var unitBExists = await _context.Units.AnyAsync(u => u.CondominiumId == condominiums[0].Id && u.UnitName == "B" && !u.WasDeleted);
 
@@ -257,12 +257,51 @@ namespace CondoVision.Data
                 {
                     _logger.LogInformation("Unidades A e B já existem para o Condomínio {CondominiumId}.", condominiums[0].Id);
                 }
+
+
+                if (!await _context.RecentActivities.AnyAsync())
+                {
+                    var activities = new List<RecentActivity>
+                    {
+                        new RecentActivity
+                        {
+                            UserName = manager.UserName,
+                            Action = "Criou nova Empresa",
+                            Date = DateTime.Now.AddDays(-14) 
+                        },
+                        new RecentActivity
+                        {
+                             UserName = owner.UserName,
+                             Action = "Atualizou Condomínio",
+                             Date = DateTime.Now.AddDays(-7) 
+                        },
+                        new RecentActivity
+                        {
+                             UserName = condomini.UserName,
+                             Action = "Eliminou Fração",
+                             Date = DateTime.Now.AddDays(-1) // 1 dia atrás
+                        }
+                    };
+                    _context.RecentActivities.AddRange(activities);
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation("Logs de atividades iniciais adicionados com sucesso.");
+                }
+                else
+                {
+                    _logger.LogInformation("Logs de atividades já existem.");
+                }
+
+
+
+
+
+
             }
         }
     }
 }
 
-    
+
 
 
 

@@ -1,0 +1,35 @@
+﻿@using CondoVision.Data.Entities
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<User> UserManager
+
+@{
+    var isAuthenticated = User?.Identity?.IsAuthenticated ?? false;
+    var userName = isAuthenticated ? User!.Identity?.Name : "Conta";
+}
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-light shadow-sm">
+            <div class="modal-header bg-gradient-primary text-white">
+                <h5 class="modal-title" id="logoutModalLabel">
+                    <i class="fas fa-sign-out-alt mr-2"></i> Confirmação de Saída
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <p class="h6 mb-2">Tem certeza que deseja sair da sua conta, @userName?</p>
+                <p class="text-muted">Você será desconectado e redirecionado para a página inicial.</p>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <form asp-controller="Account" asp-action="Logout" method="post" class="w-100">
+                    @Html.AntiForgeryToken()
+                    <div class="d-flex justify-content-between w-100">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Sair</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

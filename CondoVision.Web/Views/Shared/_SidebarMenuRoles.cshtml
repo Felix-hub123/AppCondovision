@@ -1,0 +1,90 @@
+﻿@using CondoVision.Data.Entities
+@using Microsoft.AspNetCore.Identity
+@model dynamic
+@inject UserManager<User> UserManager
+@{
+    var userId = Model.userId;
+}
+
+@* Role-based menu *@
+@if (User.IsInRole("CompanyAdmin"))
+{
+    <li class="nav-item">
+        <a asp-controller="CompanyAdmin" asp-action="Index" class="nav-link">
+            <i class="nav-icon fas fa-tachometer-alt"></i>
+            <p>Painel Admin</p>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a asp-controller="Company" asp-action="Index" class="nav-link">
+            <i class="nav-icon fas fa-building"></i>
+            <p>Empresas</p>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a asp-controller="Condominium" asp-action="Index" class="nav-link">
+            <i class="nav-icon fas fa-city"></i>
+            <p>Condomínios</p>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a asp-controller="Fraction" asp-action="Index" class="nav-link">
+            <i class="nav-icon fas fa-home"></i>
+            <p>Frações</p>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a asp-controller="FractionOwner" asp-action="Index" class="nav-link">
+            <i class="nav-icon fas fa-users"></i>
+            <p>Proprietários Fração</p>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a asp-controller="Account" asp-action="ManageUsers" class="nav-link">
+            <i class="nav-icon fas fa-users"></i>
+            <p>Utilizadores</p>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a asp-controller="Account" asp-action="ManageRoles" asp-route-userId="@userId" class="nav-link">
+            <i class="nav-icon fas fa-user-shield"></i>
+            <p>Gerenciar Permissões</p>
+        </a>
+    </li>
+}
+else if (User.IsInRole("CondoManager"))
+{
+    <li class="nav-item">
+        <a asp-controller="CondoManager" asp-action="Index" class="nav-link">
+            <i class="nav-icon fas fa-chart-line"></i>
+            <p>Painel Gestor</p>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a asp-controller="Condominium" asp-action="Index" class="nav-link">
+            <i class="nav-icon fas fa-city"></i>
+            <p>Condomínios</p>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a asp-controller="Fraction" asp-action="Index" class="nav-link">
+            <i class="nav-icon fas fa-home"></i>
+            <p>Frações</p>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a asp-controller="FractionOwner" asp-action="Index" class="nav-link">
+            <i class="nav-icon fas fa-users"></i>
+            <p>Proprietários Fração</p>
+        </a>
+    </li>
+}
+else if (User.IsInRole("CondoOwner"))
+{
+    <li class="nav-item">
+        <a asp-controller="CondoOwner" asp-action="Index" class="nav-link">
+            <i class="nav-icon fas fa-user"></i>
+            <p>Meu Painel</p>
+        </a>
+    </li>
+}

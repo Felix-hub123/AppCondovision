@@ -48,7 +48,7 @@ namespace CondoVision.Web.Controllers
 
             if (!string.IsNullOrEmpty(searchString))
             {
-                usersQuery = usersQuery.Where(u => u.Email.Contains(searchString) || u.FullName.Contains(searchString));
+                usersQuery = usersQuery.Where(u => u.Email!.Contains(searchString) || u.FullName!.Contains(searchString));
             }
 
             usersQuery = sortOrder switch
@@ -87,7 +87,7 @@ namespace CondoVision.Web.Controllers
                 // Converte o ViewModel para a entidade User usando o ConverterHelper
                 var user = _converterHelper.ToUser(model);
 
-                var result = await _userManager.CreateAsync(user, model.Password);
+                var result = await _userManager.CreateAsync(user, model.Password!);
                 if (result.Succeeded)
                 {
                     await _userManager.AddToRoleAsync(user, "CondoOwner"); // Papel padrão

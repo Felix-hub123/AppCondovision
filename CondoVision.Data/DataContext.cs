@@ -30,7 +30,9 @@ namespace CondoVision.Data
 
         public DbSet<Company> Companies { get; set; }
 
-    
+        public DbSet<RecentActivity> RecentActivities { get; set; }
+
+
 
 
 
