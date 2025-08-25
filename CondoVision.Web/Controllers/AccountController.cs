@@ -38,13 +38,19 @@ namespace CondoVision.Web.Controllers
 
 
 
-        public async Task<IActionResult> Index(string searchString, string sortOrder, int page = 1, int pageSize = 10)
+        public async Task<IActionResult> Index(string searchString, string sortOrder, int? companyId, int page = 1, int pageSize = 10)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null || !User.IsInRole("AdminCompany"))
+                return Forbid(); 
+
+            companyId = companyId ?? currentUser.CompanyId; 
+
             ViewData["CurrentFilter"] = searchString;
             ViewData["EmailSortParm"] = string.IsNullOrEmpty(sortOrder) ? "email_desc" : "";
             ViewData["NameSortParm"] = sortOrder == "name" ? "name_desc" : "name";
 
-            var usersQuery = _userRepository.GetAllQueryable();
+            var usersQuery = _userRepository.GetAllQueryable().Where(u => u.CompanyId == companyId);
 
             if (!string.IsNullOrEmpty(searchString))
             {
@@ -65,11 +71,54 @@ namespace CondoVision.Web.Controllers
                 .Take(pageSize)
                 .ToList();
 
-            var model = _converterHelper.ToUserListViewModel(users); 
+            var model = _converterHelper.ToUserListViewModel(users);
             ViewBag.TotalPages = (int)Math.Ceiling((double)totalUsers / pageSize);
             ViewBag.CurrentPage = page;
 
             return View(model);
+        }
+
+
+
+        // GET: Register
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(RegisterUserViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                if (model.Password != model.ConfirmPassword)
+                {
+                    ModelState.AddModelError(string.Empty, "As senhas não coincidem.");
+                    return View(model);
+                }
+
+                var user = _converterHelper.ToUser(model);
+                var result = await _userManager.CreateAsync(user, model.Password!);
+                if (result.Succeeded)
+                {
+                    await _userManager.AddToRoleAsync(user, model.Role ?? "Condómino");
+                    await _userRepository.AddAsync(user);
+                    var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var link = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, token }, protocol: HttpContext.Request.Scheme);
+                    await _mailHelper.SendEmailAsync(user.Email!, "Confirmação de E-mail", $"Confirme seu e-mail <a href='{link}'>aqui</a>.");
+                    return RedirectToAction("Login");
+                }
+                AddErrors(result);
+            }
+                   ViewBag.Roles = new List<SelectListItem>
+                   {
+                      new SelectListItem { Value = "AdminCompany", Text = "Administrador de Empresa" },
+                      new SelectListItem { Value = "CondoManager", Text = "Gestor de Condomínio" },
+                      new SelectListItem { Value = "Condómino", Text = "Condómino" }
+                   };
+                   return View(model);
         }
 
 
@@ -84,14 +133,14 @@ namespace CondoVision.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Converte o ViewModel para a entidade User usando o ConverterHelper
+                
                 var user = _converterHelper.ToUser(model);
 
                 var result = await _userManager.CreateAsync(user, model.Password!);
                 if (result.Succeeded)
                 {
-                    await _userManager.AddToRoleAsync(user, "CondoOwner"); // Papel padrão
-                    await _userRepository.AddAsync(user); // Salva no repositório
+                    await _userManager.AddToRoleAsync(user, "CondoOwner"); 
+                    await _userRepository.AddAsync(user); 
                     return RedirectToAction(nameof(Index));
                 }
                 AddErrors(result);
@@ -99,14 +148,14 @@ namespace CondoVision.Web.Controllers
             return View(model);
         }
 
-        // Editar utilizador
+      
         public async Task<IActionResult> Edit(string id)
         {
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null)
                 return NotFound();
 
-            // Converte a entidade User para EditProfileViewModel usando o ConverterHelper
+            
             var model = _converterHelper.ToEditProfileViewModel(user);
             return View(model);
         }
@@ -197,54 +246,9 @@ namespace CondoVision.Web.Controllers
             return View(model);
         }
 
-        // GET: Register
-        public IActionResult Register()
-        {
-            return View();
-        }
+       
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterUserViewModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                if (string.IsNullOrEmpty(model.Username))
-                {
-                    ModelState.AddModelError(string.Empty, "O nome de usuário é obrigatório.");
-                    return View(model);
-                }
-                if (string.IsNullOrEmpty(model.Password))
-                {
-                    ModelState.AddModelError(string.Empty, "A senha é obrigatória.");
-                    return View(model);
-                }
-
-                var user = new User
-                {
-                    UserName = model.Username,
-                    Email = model.Username,
-                    FullName = model.FullName,
-                    WasDeleted = false
-                };
-                var result = await _userManager.CreateAsync(user, model.Password);
-                if (result.Succeeded)
-                {
-                    if (await _roleManager.RoleExistsAsync("Condómino"))
-                    {
-                        await _userManager.AddToRoleAsync(user, "Condómino");
-                    }
-                    else
-                    {
-                        ModelState.AddModelError(string.Empty, "Role 'Condómino' não encontrada. Contate o administrador.");
-                        return View(model);
-                    }
-                    return RedirectToAction("Login");
-                }
-                AddErrors(result);
-            }
-            return View(model);
-        }
+      
 
         // Logout
         [HttpPost]
@@ -470,6 +474,40 @@ namespace CondoVision.Web.Controllers
             }
             ModelState.AddModelError(string.Empty, "Código de verificação inválido.");
             return View(model);
+        }
+
+
+        [HttpPost("api/register")]
+        public async Task<IActionResult> ApiRegister(RegisterUserViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = _converterHelper.ToUser(model);
+                var result = await _userManager.CreateAsync(user, model.Password!);
+                if (result.Succeeded)
+                {
+                    await _userManager.AddToRoleAsync(user, model.Role ?? "Condómino");
+                    await _userRepository.AddAsync(user);
+                    return Ok(new { Message = "Usuário criado com sucesso." });
+                }
+                return BadRequest(result.Errors);
+            }
+            return BadRequest(ModelState);
+        }
+
+        [HttpPost("api/login")]
+        public async Task<IActionResult> ApiLogin(LoginViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var result = await _signInManager.PasswordSignInAsync(model.Email!, model.Password!, model.RememberMe, false);
+                if (result.Succeeded)
+                {
+                    return Ok(new { Message = "Login bem-sucedido." });
+                }
+                return BadRequest("Login falhou.");
+            }
+            return BadRequest(ModelState);
         }
 
     }

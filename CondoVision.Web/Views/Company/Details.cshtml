@@ -50,56 +50,61 @@
                     </div>
                     <div class="card-body">
                         <dl class="row">
-                            <dt class="col-sm-4">
-                                @Html.DisplayNameFor(model => model.Name)
-                            </dt>
+                            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Name)</dt>
+                            <dd class="col-sm-8">@Html.DisplayFor(model => model.Name)</dd>
+                            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.CompanyTaxId)</dt>
+                            <dd class="col-sm-8">@Html.DisplayFor(model => model.CompanyTaxId)</dd>
+                            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Address)</dt>
+                            <dd class="col-sm-8">@Html.DisplayFor(model => model.Address)</dd>
+                            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Contact)</dt>
+                            <dd class="col-sm-8">@Html.DisplayFor(model => model.Contact)</dd>
+                            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.LogoId)</dt>
                             <dd class="col-sm-8">
-                                @Html.DisplayFor(model => model.Name)
+                                @if (Model.LogoId.HasValue)
+                                {
+                                    <span>@Html.DisplayFor(model => model.LogoId)</span>
+                                    <small class="form-text text-muted">(ID do logotipo associado)</small>
+                                    @* Adicionar pré-visualização se disponível: *@
+                                    @*<img src="@Url.Action("GetLogo", "Companies", new { id = Model.LogoId })" alt="Logotipo" class="img-thumbnail" style="max-width: 100px;" />*@
+                                }
+                                else
+                                {
+                                    <span>Nenhum logotipo associado</span>
+                                }
                             </dd>
-                            <dt class="col-sm-4">
-                                @Html.DisplayNameFor(model => model.CompanyTaxId)
-                            </dt>
+                            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.CreationDate)</dt>
+                            <dd class="col-sm-8">@Html.DisplayFor(model => model.CreationDate, "dd/MM/yyyy")</dd>
+                            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.WasDeleted)</dt>
+                            <dd class="col-sm-8">@(Model.WasDeleted ? "Sim" : "Não")</dd>
+                            <dt class="col-sm-4">Condomínios Associados</dt>
                             <dd class="col-sm-8">
-                                @Html.DisplayFor(model => model.CompanyTaxId)
-                            </dd>
-                            <dt class="col-sm-4">
-                                @Html.DisplayNameFor(model => model.Address)
-                            </dt>
-                            <dd class="col-sm-8">
-                                @Html.DisplayFor(model => model.Address)
-                            </dd>
-                            <dt class="col-sm-4">
-                                @Html.DisplayNameFor(model => model.Contact)
-                            </dt>
-                            <dd class="col-sm-8">
-                                @Html.DisplayFor(model => model.Contact)
-                            </dd>
-                            <dt class="col-sm-4">
-                                @Html.DisplayNameFor(model => model.LogoId)
-                            </dt>
-                            <dd class="col-sm-8">
-                                @Html.DisplayFor(model => model.LogoId)
-                                <small class="form-text text-muted">(ID do logotipo associado)</small>
-                            </dd>
-                            <dt class="col-sm-4">
-                                @Html.DisplayNameFor(model => model.CreationDate)
-                            </dt>
-                            <dd class="col-sm-8">
-                                @Html.DisplayFor(model => model.CreationDate, "{0:dd/MM/yyyy}")
-                            </dd>
-                            <dt class="col-sm-4">
-                                @Html.DisplayNameFor(model => model.WasDeleted)
-                            </dt>
-                            <dd class="col-sm-8">
-                                @Html.DisplayFor(model => model.WasDeleted, new { @Value = Model.WasDeleted ? "Sim" : "Não" })
+                                @if (Model.Condominiums != null && Model.Condominiums.Any())
+                                {
+                                    <ul class="list-group list-group-flush">
+                                        @foreach (var condo in Model.Condominiums)
+                                        {
+                                            <li class="list-group-item">@condo.Name</li>
+                                        }
+                                    </ul>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Nenhum condomínio associado</span>
+                                }
                             </dd>
                         </dl>
                     </div>
                     <div class="card-footer">
-                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-info" title="Editar empresa" aria-label="Editar">
-                            <i class="fas fa-edit"></i> Editar
-                        </a>
-                        <a asp-action="Index" class="btn btn-secondary" title="Voltar à lista de empresas" aria-label="Voltar">
+                        @if (User.IsInRole("CompanyAdmin"))
+                        {
+                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-info" title="Editar empresa" aria-label="Editar">
+                                <i class="fas fa-edit"></i> Editar
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger ml-2" title="Eliminar empresa" aria-label="Eliminar">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </a>
+                        }
+                        <a asp-action="Index" class="btn btn-secondary ml-2" title="Voltar à lista de empresas" aria-label="Voltar">
                             <i class="fas fa-arrow-left"></i> Voltar à Lista
                         </a>
                     </div>

@@ -8,7 +8,7 @@
 <div class="content-header">
     <div class="container-fluid">
         <div class="row mb-2">
-            <div class="col-sm-6">
+            <div class="col-12 text-center">
                 <h1 class="m-0">@ViewData["Title"]</h1>
             </div>
         </div>
@@ -16,39 +16,53 @@
 </div>
 
 <section class="content">
-    <div class="container-fluid">
+    <div class="container">
         <div class="row justify-content-center">
-            <div class="col-lg-4 col-md-6 col-sm-12">
-                <div class="card card-primary card-outline">
-                    <div class="card-header">
-                        <h3 class="card-title">Iniciar Sessão</h3>
+            <div class="col-lg-5 col-md-7 col-sm-12">
+                <div class="card shadow-sm border-0 rounded-lg">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h4 class="card-title m-0">Inicie sua sessão</h4>
                     </div>
                     <div class="card-body">
-                        <form asp-action="Login" method="post">
-                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                            <div class="form-group">
-                                <label asp-for="Email" class="control-label"></label>
-                                <input asp-for="Email" class="form-control" />
-                                <span asp-validation-for="Email" class="text-danger"></span>
+                        @if (ViewData.ModelState.ErrorCount > 0)
+                        {
+                            <div class="alert alert-danger">
+                                <ul class="mb-0">
+                                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                    {
+                                        <li>@error.ErrorMessage</li>
+                                    }
+                                </ul>
                             </div>
-                            <div class="form-group">
-                                <label asp-for="Password" class="control-label"></label>
-                                <input asp-for="Password" class="form-control" type="password" />
-                                <span asp-validation-for="Password" class="text-danger"></span>
+                        }
+
+                        <form asp-action="Login" method="post" novalidate>
+                            <div class="mb-3">
+                                <label asp-for="Email" class="form-label"></label>
+                                <input asp-for="Email" class="form-control form-control-lg" placeholder="Digite seu e-mail" />
+                                <span asp-validation-for="Email" class="text-danger small"></span>
                             </div>
-                            <div class="form-group">
-                                <div class="form-check">
-                                    <input asp-for="RememberMe" class="form-check-input" />
-                                    <label asp-for="RememberMe" class="form-check-label">Lembrar-me</label>
-                                </div>
+                            <div class="mb-3">
+                                <label asp-for="Password" class="form-label"></label>
+                                <input asp-for="Password" type="password" class="form-control form-control-lg" placeholder="Digite sua senha" />
+                                <span asp-validation-for="Password" class="text-danger small"></span>
                             </div>
-                            <div class="form-group">
-                                <button type="submit" class="btn btn-primary">Login</button>
-                                <a asp-action="Register" class="btn btn-link">Registar</a>
-                                <a asp-action="ForgotPassword" class="btn btn-link float-right">Esqueceu a senha?</a>
+                            <div class="mb-3 form-check">
+                                <input asp-for="RememberMe" class="form-check-input" />
+                                <label asp-for="RememberMe" class="form-check-label">Lembrar-me</label>
+                            </div>
+                            <div class="d-grid gap-2 mb-2">
+                                <button type="submit" class="btn btn-primary btn-lg">Login</button>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <a asp-action="Register" class="btn btn-outline-secondary btn-sm">Registar</a>
+                                <a asp-action="ForgotPassword" class="btn btn-link btn-sm">Esqueceu a senha?</a>
                             </div>
                         </form>
                     </div>
+                </div>
+                <div class="text-center mt-3">
+                    <small class="text-muted">Digite suas credenciais para acessar o sistema.</small>
                 </div>
             </div>
         </div>

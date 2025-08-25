@@ -53,5 +53,7 @@ namespace CondoVision.Data.Helper
         FractionOwnerViewModel ToFractionOwnerViewModel(FractionOwner fractionOwner);
 
         IEnumerable<FractionOwnerViewModel> ToFractionOwnerViewModelList(IEnumerable<FractionOwner> fractionOwners);
+
+        List<CondominiumViewModel> ToCondominiumViewModelList(List<Condominium> condominiums);
     }
 }

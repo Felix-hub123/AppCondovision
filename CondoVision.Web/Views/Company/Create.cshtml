@@ -1,7 +1,7 @@
 ﻿@model CondoVision.Models.CompanyViewModel
 
 @{
-   
+    ViewData["Title"] = "Criar Nova Empresa";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -48,21 +48,24 @@
                     <div class="card-header">
                         <h3 class="card-title">Criar Nova Empresa</h3>
                     </div>
-                    <form asp-action="Create">
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken() 
                         <div class="card-body">
                             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                            <input type="hidden" asp-for="CreationDate" />
-                            <input type="hidden" asp-for="WasDeleted" />
+
+                            
+                            <input type="hidden" asp-for="Id" value="0" />
+                            <input type="hidden" asp-for="CompanyId" value="@(ViewData["UserCompanyId"])" />
 
                             <div class="form-group">
                                 <label asp-for="Name" class="control-label"></label>
-                                <input asp-for="Name" class="form-control" />
+                                <input asp-for="Name" class="form-control" required />
                                 <span asp-validation-for="Name" class="text-danger"></span>
                             </div>
 
                             <div class="form-group">
                                 <label asp-for="CompanyTaxId" class="control-label"></label>
-                                <input asp-for="CompanyTaxId" class="form-control" />
+                                <input asp-for="CompanyTaxId" class="form-control" required />
                                 <span asp-validation-for="CompanyTaxId" class="text-danger"></span>
                             </div>
 

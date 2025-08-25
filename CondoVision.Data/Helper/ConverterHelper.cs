@@ -346,6 +346,24 @@ namespace CondoVision.Data.Helper
             return fractionOwners?.Select(ToFractionOwnerViewModel) ?? Enumerable.Empty<FractionOwnerViewModel>();
         }
 
+        public List<CondominiumViewModel> ToCondominiumViewModelList(List<Condominium> condominiums)
+        {
+            var condominiumVMs = new List<CondominiumViewModel>();
+            if (condominiums != null)
+            {
+                foreach (var condominium in condominiums)
+                {
+                    condominiumVMs.Add(new CondominiumViewModel
+                    {
+                        Id = condominium.Id,
+                        Name = condominium.Name
+                        // Mapeie outras propriedades conforme necessário
+                    });
+                }
+            }
+            return condominiumVMs; // Retorna List<CondominiumViewModel>
+        }
+
 
     }
 

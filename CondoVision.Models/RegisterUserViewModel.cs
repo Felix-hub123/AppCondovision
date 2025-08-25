@@ -32,5 +32,8 @@ namespace CondoVision.Models
         [Display(Name = "Número de Telefone")] 
         public string? PhoneNumber { get; set; }
 
+
+        [Display (Name ="Responsablidade")]
+        public string? Role { get; set; }
     }
 }

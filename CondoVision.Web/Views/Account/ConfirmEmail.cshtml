@@ -2,12 +2,27 @@
     ViewData["Title"] = "Confirmação de Email";
 }
 
-<h1>Confirmação de Email</h1>
-
-<p>
-    @ViewBag.Message
-</p>
-
-<div>
-    <a asp-action="Login">Voltar para o Login</a>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg rounded-3 border-0 text-center">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-check-circle-fill"></i> Confirmação de Email
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <p class="lead">
+                        @ViewBag.Message
+                    </p>
+                    <div class="d-grid mt-3">
+                        <a asp-action="Login" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right"></i> Voltar para o Login
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+

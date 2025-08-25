@@ -72,14 +72,26 @@ namespace CondoVision.Data
                 .HasForeignKey(u => u.OwnerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Configuração de Condominium
+           
             modelBuilder.Entity<Condominium>()
                 .HasOne(c => c.Company)
                 .WithMany(c => c.Condominiums)
                 .HasForeignKey(c => c.CompanyId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Configuração de valores padrão
+            modelBuilder.Entity<Company>(entity =>
+            {
+                entity.Property(e => e.CreatedById)
+                    .HasColumnType("nvarchar(450)") 
+                    .IsRequired(false); 
+
+                entity.HasOne(d => d.CreatedBy)
+                    .WithMany() 
+                    .HasForeignKey(d => d.CreatedById)
+                    .OnDelete(DeleteBehavior.Restrict); 
+            });
+
+          
             modelBuilder.Entity<Company>().Property(c => c.WasDeleted).HasDefaultValue(false);
             modelBuilder.Entity<Condominium>().Property(c => c.WasDeleted).HasDefaultValue(false);
             modelBuilder.Entity<CondominiumUser>().Property(cu => cu.WasDeleted).HasDefaultValue(false);

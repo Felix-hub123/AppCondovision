@@ -12,25 +12,30 @@ namespace CondoVision.Web.Controllers
     {
         private readonly ICompanyRepository _companyRepository;
         private readonly IConverterHelper _converterHelper;
-        private readonly ILogger<CompanyController> _logger;
         private readonly UserManager<User> _userManager;
+        private readonly ICondominiumRepository _condominiumRepository; // Para gerenciar condomínios
 
         public CompanyController(
             ICompanyRepository companyRepository,
             IConverterHelper converterHelper,
-            ILogger<CompanyController> logger,
-            UserManager<User> userManager
-            )
+            UserManager<User> userManager,
+            ICondominiumRepository condominiumRepository)
         {
             _companyRepository = companyRepository;
             _converterHelper = converterHelper;
-            _logger = logger;
             _userManager = userManager;
+            _condominiumRepository = condominiumRepository;
         }
 
+        // GET: Companies/Index
         public async Task<IActionResult> Index()
         {
+            var loggedUser = await _userManager.GetUserAsync(User);
             var companies = await _companyRepository.GetCompaniesWithCondominiumsAsync();
+            if (loggedUser != null)
+            {
+                companies = companies.Where(c => c.Id == loggedUser.CompanyId).ToList(); // Filtra pela empresa do usuário
+            }
             return View(companies);
         }
 
@@ -49,6 +54,8 @@ namespace CondoVision.Web.Controllers
             }
 
             var companyVM = _converterHelper.ToCompanyViewModel(company);
+            var condominiums = await _condominiumRepository.GetCondominiumsByCompanyIdAsync(id.Value); 
+            companyVM.Condominiums = _converterHelper.ToCondominiumViewModelList(condominiums); 
             return View(companyVM);
         }
 
@@ -66,16 +73,25 @@ namespace CondoVision.Web.Controllers
             if (ModelState.IsValid)
             {
                 var company = _converterHelper.ToCompany(companyVM);
-                company.CreationDate = DateTime.UtcNow; 
+                company.CreationDate = DateTime.UtcNow;
                 company.WasDeleted = false;
+
+                // Associar usuário logado como admin da empresa
+                var user = await _userManager.GetUserAsync(User);
+                if (user != null)
+                {
+                    company.CreatedById = user.Id;
+                    user.CompanyId = company.Id; // Associa o usuário à empresa
+                    await _userManager.UpdateAsync(user);
+                }
+
                 await _companyRepository.CreateAsync(company);
                 return RedirectToAction(nameof(Index));
             }
             return View(companyVM);
         }
 
-      
-
+        // GET: Companies/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -87,6 +103,12 @@ namespace CondoVision.Web.Controllers
             if (company == null || company.WasDeleted)
             {
                 return NotFound();
+            }
+
+            var loggedUser = await _userManager.GetUserAsync(User);
+            if (company.Id != loggedUser!.CompanyId)
+            {
+                return Forbid(); // Restringe edição a empresas do usuário
             }
 
             var companyVM = _converterHelper.ToCompanyViewModel(company);
@@ -108,11 +130,19 @@ namespace CondoVision.Web.Controllers
                 try
                 {
                     var company = await _companyRepository.GetByIdAsync(id);
-                    if (company != null)
+                    if (company == null)
                     {
-                        _converterHelper.UpdateCompany(company, companyVM);
-                        await _companyRepository.UpdateAsync(company);
+                        return NotFound();
                     }
+
+                    var loggedUser = await _userManager.GetUserAsync(User);
+                    if (company.Id != loggedUser!.CompanyId)
+                    {
+                        return Forbid();
+                    }
+
+                    _converterHelper.UpdateCompany(company, companyVM);
+                    await _companyRepository.UpdateAsync(company);
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
@@ -141,6 +171,12 @@ namespace CondoVision.Web.Controllers
                 return NotFound();
             }
 
+            var loggedUser = await _userManager.GetUserAsync(User);
+            if (company.Id != loggedUser!.CompanyId)
+            {
+                return Forbid();
+            }
+
             var companyVM = _converterHelper.ToCompanyViewModel(company);
             return View(companyVM);
         }
@@ -153,40 +189,65 @@ namespace CondoVision.Web.Controllers
             try
             {
                 var user = await _userManager.GetUserAsync(User);
-                var userName = user?.Email ?? "Usuário Anônimo";
-
-                var company = await _companyRepository.GetCompanyByIdAsync(id); 
-                if (company != null)
+                var company = await _companyRepository.GetCompanyByIdAsync(id);
+                if (company != null && company.Id == user!.CompanyId) // Verifica permissão
                 {
-                    await _companyRepository.DeleteCompanyAsync(id); 
-                    _logger.LogInformation("Empresa com ID {CompanyId} foi marcada como excluída por {UserName} às {Time} (WEST).",
-                        id, userName, DateTime.Now);
+                    await _companyRepository.DeleteCompanyAsync(id);
                     TempData["SuccessMessage"] = "Empresa excluída com sucesso!";
                 }
                 else
                 {
-                    _logger.LogWarning("Tentativa de excluir empresa com ID {Id} falhou: empresa não encontrada.", id);
-                    TempData["ErrorMessage"] = "Empresa não encontrada.";
+                    TempData["ErrorMessage"] = "Permissão negada ou empresa não encontrada.";
                 }
                 return RedirectToAction(nameof(Index));
             }
-            catch (DbUpdateException ex)
+            catch (DbUpdateException)
             {
-                _logger.LogError(ex, "Erro de banco de dados ao excluir empresa com ID {Id} por {UserName} às {Time} (WEST).",
-                    id, (await _userManager.GetUserAsync(User))?.Email ?? "Usuário Anônimo", DateTime.Now);
                 ModelState.AddModelError("", "Erro ao excluir: problema com o banco de dados.");
-       
                 var company = await _companyRepository.GetCompanyByIdAsync(id);
                 return company == null ? NotFound() : View("Delete", _converterHelper.ToCompanyViewModel(company));
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError(ex, "Erro inesperado ao excluir empresa com ID {Id} por {UserName} às {Time} (WEST).",
-                    id, (await _userManager.GetUserAsync(User))?.Email ?? "Usuário Anônimo", DateTime.Now);
                 ModelState.AddModelError("", "Erro inesperado ao excluir.");
                 var company = await _companyRepository.GetCompanyByIdAsync(id);
                 return company == null ? NotFound() : View("Delete", _converterHelper.ToCompanyViewModel(company));
             }
+        }
+
+        // API: Get Companies
+        [HttpGet("api/companies")]
+        public async Task<IActionResult> GetCompaniesJson()
+        {
+            var loggedUser = await _userManager.GetUserAsync(User);
+            var companies = await _companyRepository.GetCompaniesWithCondominiumsAsync();
+            if (loggedUser != null)
+            {
+                companies = companies.Where(c => c.Id == loggedUser.CompanyId).ToList();
+            }
+            return Json(companies);
+        }
+
+        // API: Get Company Details
+        [HttpGet("api/companies/{id}")]
+        public async Task<IActionResult> GetCompanyDetailsJson(int id)
+        {
+            var company = await _companyRepository.GetCompanyByIdAsync(id);
+            if (company == null || company.WasDeleted)
+            {
+                return NotFound();
+            }
+
+            var loggedUser = await _userManager.GetUserAsync(User);
+            if (company.Id != loggedUser!.CompanyId)
+            {
+                return Forbid();
+            }
+
+            var companyVM = _converterHelper.ToCompanyViewModel(company);
+            var condominiums = await _condominiumRepository.GetCondominiumsByCompanyIdAsync(id); // Retorna List<Condominium>
+            companyVM.Condominiums = _converterHelper.ToCondominiumViewModelList(condominiums).ToList(); // Converte para List<CondominiumViewModel>
+            return Json(companyVM);
         }
     }
 }

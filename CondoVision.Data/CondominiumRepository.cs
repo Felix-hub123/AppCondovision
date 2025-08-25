@@ -20,6 +20,18 @@ namespace CondoVision.Models.Entities
                 .ToListAsync();
         }
 
+        public Task<List<Condominium>> GetCondominiumsByCompanyIdAsync(int companyId)
+        {
+            if (companyId <= 0)
+            {
+                throw new ArgumentException("O ID da empresa deve ser maior que zero.", nameof(companyId));
+            }
+
+            return _context.Condominiums
+                .Where(c => c.CompanyId == companyId && !c.WasDeleted) 
+                .Include(c => c.Address) 
+                .ToListAsync();
+        }
 
 
         // Em CondominiumRepository.cs

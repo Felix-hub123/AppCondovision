@@ -35,7 +35,8 @@ namespace CondoVision.Data.Entities
 
         public ICollection<Condominium> Condominiums { get; set; } = new List<Condominium>();
 
-      
+        public User? CreatedBy { get; set; }
 
+        public string? CreatedById { get; set; }
     }
 }

@@ -5,17 +5,50 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Habilitar Autenticação de Dois Fatores</h1>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+            <div class="card shadow-lg rounded-3 border-0">
+                <div class="card-header bg-dark text-white text-center">
+                    <h4 class="mb-0">
+                        <i class="bi bi-shield-lock-fill"></i> Habilitar Autenticação de Dois Fatores
+                    </h4>
+                </div>
+                <div class="card-body p-4 text-center">
+                    <p class="lead">
+                        Escaneie o código QR abaixo com um app autenticador
+                        (<span class="fw-semibold">Google Authenticator</span>, <span class="fw-semibold">Microsoft Authenticator</span>, etc).
+                    </p>
 
-<p>Para habilitar o 2FA, escaneie o código QR com um app de autenticação (ex.: Google Authenticator).</p>
+                    <div class="my-4">
+                        <img src="@Model.QRCodeImageUrl"
+                             alt="QR Code para 2FA"
+                             class="img-fluid border rounded shadow-sm"
+                             style="max-width: 250px;" />
+                    </div>
 
-<img src="@Model.QRCodeImageUrl" alt="QR Code for 2FA" />
+                    <form asp-action="Enable2FA" method="post" class="text-start">
+                        <div class="mb-3">
+                            <label asp-for="Code" class="form-label fw-semibold"></label>
+                            <input asp-for="Code" class="form-control text-center" placeholder="Digite o código gerado" />
+                            <span asp-validation-for="Code" class="text-danger"></span>
+                        </div>
 
-<form asp-action="Enable2FA" method="post">
-    <div class="form-group">
-        <label asp-for="Code" class="control-label"></label>
-        <input asp-for="Code" class="form-control" />
-        <span asp-validation-for="Code" class="text-danger"></span>
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle"></i> Confirmar e Habilitar
+                            </button>
+                            <a asp-action="Index" asp-controller="Home" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-    <button type="submit" class="btn btn-primary">Habilitar</button>
-</form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

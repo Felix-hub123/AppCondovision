@@ -5,34 +5,53 @@
     ViewData["Title"] = "Editar Usuário";
 }
 
-<h2>Editar Usuário</h2>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+            <div class="card shadow-lg rounded-3 border-0">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="mb-0">
+                        <i class="bi bi-pencil-square"></i> Editar Usuário
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Edit" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
 
-<form asp-action="Edit" method="post">
-    @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.FullName, new { @class = "form-label fw-semibold" })
+                            @Html.TextBoxFor(m => m.FullName, new { @class = "form-control" })
+                            @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "text-danger" })
+                        </div>
 
-    <input type="hidden" asp-for="Id" />
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Email, new { @class = "form-label fw-semibold" })
+                            @Html.TextBoxFor(m => m.Email, new { @class = "form-control", @readonly = "readonly" })
+                            <small class="text-muted">O email não pode ser alterado.</small>
+                            @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+                        </div>
 
-    <div class="form-group">
-        @Html.LabelFor(m => m.FullName)
-        @Html.EditorFor(m => m.FullName, new { @class = "form-control" })
-        @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "text-danger" })
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.PhoneNumber, new { @class = "form-label fw-semibold" })
+                            @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control" })
+                            @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle"></i> Salvar
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <div class="form-group">
-        @Html.LabelFor(m => m.Email)
-        @Html.EditorFor(m => m.Email, new { @class = "form-control", @readonly = "readonly" })
-        @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
-    </div>
-
-    <div class="form-group">
-        @Html.LabelFor(m => m.PhoneNumber)
-        @Html.EditorFor(m => m.PhoneNumber, new { @class = "form-control" })
-        @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger" })
-    </div>
-
-    <button type="submit" class="btn btn-primary">Salvar</button>
-    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
-</form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

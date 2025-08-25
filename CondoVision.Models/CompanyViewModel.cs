@@ -38,5 +38,11 @@ namespace CondoVision.Models
 
         [Display(Name = "Eliminado")]
         public bool WasDeleted { get; set; }
+
+        [Display(Name = "Condominios")]
+        public List<CondominiumViewModel>? Condominiums { get; set; }
+
+        [Display(Name = "Companinha")]
+        public int? CompanyId { get; set; }
     }
 }
