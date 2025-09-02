@@ -1,0 +1,115 @@
+﻿@using CondoVision.Models
+@model ManageUsersViewModel
+
+@{
+    ViewData["Title"] = "Gerenciar Usuários - Empresa @Model.CompanyId";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section ContentHeader {
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>@ViewData["Title"]</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home">Home</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Companies">Empresas</a></li>
+                    <li class="breadcrumb-item active">@ViewData["Title"]</li>
+                </ol>
+            </div>
+        </div>
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["SuccessMessage"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["ErrorMessage"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+    </div>
+}
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card card-info card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">Gerenciar Usuários - Empresa @Model.CompanyId</h3>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Users.Any())
+                        {
+                            <form asp-action="AssignRole" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" asp-for="CompanyId" />
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Email</th>
+                                            <th>Roles Atuais</th>
+                                            <th>AssignedCompanyId</th>
+                                            <th>Ação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var user in Model.Users)
+                                        {
+                                            <tr>
+                                                <td>@user.Email</td>
+                                                <td>@(string.IsNullOrEmpty(string.Join(", ", user.Roles ?? new List<string>())) ? "Nenhuma" : string.Join(", ", user.Roles))</td>
+                                                <td>@user.AssignedCompanyId</td>
+                                                <td>
+                                                    <select name="role" class="form-control custom-select">
+                                                        <option value="">Selecione uma role</option>
+                                                        <option value="CompanyAdmin">CompanyAdmin</option>
+                                                        <option value="CondoManager">Gestor de Condomínio</option>
+                                                        <option value="Condo">Condômino</option>
+                                                    </select>
+                                                    <input type="hidden" name="userId" value="@user.UserId" />
+                                                    <button type="submit" class="btn btn-primary mt-2" title="Atribuir role ao utilizador"
+                                                            onclick="return confirm('Tem certeza que deseja atribuir a role selecionada a @user.Email?');">
+                                                        <i class="fas fa-user-plus"></i> Atribuir Role
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </form>
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning text-center" role="alert">
+                                Nenhum usuário encontrado para esta empresa. <a href="/Account/Create">Crie o primeiro utilizador aqui</a>.
+                            </div>
+                        }
+                    </div>
+                    <div class="card-footer">
+                        <a asp-action="Index" class="btn btn-secondary" title="Voltar à lista de empresas" aria-label="Voltar">
+                            <i class="fas fa-arrow-left"></i> Voltar à Lista
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

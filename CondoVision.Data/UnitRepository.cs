@@ -14,18 +14,77 @@ namespace CondoVision.Data
         {
         }
 
-        public async Task<IEnumerable<Unit>> GetUnitsByCondominiumIdAsync(int condominiumId)
+        public new Task<Unit> GetByIdAsync(int id, bool ignoreSoftDelete = false)
         {
-            return await _context.Units
-                .Where(u => u.CondominiumId == condominiumId && !u.WasDeleted)
-                .ToListAsync();
+            return base.GetByIdAsync(id, ignoreSoftDelete);
+        }
+
+        public async Task<Unit> GetByIdAsync(int id, int? companyId, bool ignoreSoftDelete = false)
+        {
+            var query = _context.Set<Unit>().AsNoTracking();
+            if (!ignoreSoftDelete)
+            {
+                query = query.Where(u => !u.WasDeleted);
+            }
+
+            if (companyId.HasValue)
+            {
+                query = query.Where(u => u.CompanyId == companyId);
+            }
+
+            var unit = await query.FirstOrDefaultAsync(u => u.Id == id);
+            if (unit == null)
+            {
+                throw new KeyNotFoundException($"Unidade com ID {id} não encontrada para CompanyId {companyId}.");
+            }
+            return unit;
+        }
+
+        public async Task<IEnumerable<Unit>> GetUnitsByCondominiumIdAsync(int condominiumId, int? companyId = null)
+        {
+            var query = _context.Set<Unit>().AsNoTracking()
+                .Where(u => !u.WasDeleted && u.CondominiumId == condominiumId);
+
+            if (companyId.HasValue)
+            {
+                query = query.Where(u => u.CompanyId == companyId);
+            }
+
+            return await query.OrderBy(u => u.Id).ToListAsync(); 
         }
 
         public async Task<IEnumerable<Unit>> GetAllActiveAsync()
         {
-            return await _context.Units
-                .Where(u => !u.WasDeleted)
-                .ToListAsync();
+            return await _context.Set<Unit>().Where(u => !u.WasDeleted).ToListAsync();
+        }
+
+        public new async Task AddAsync(Unit entity)
+        {
+            await base.AddAsync(entity);
+        }
+
+        public new async Task UpdateAsync(Unit entity)
+        {
+            await base.UpdateAsync(entity);
+        }
+
+        public new async Task DeleteAsync(Unit entity)
+        {
+            if (entity == null)
+            {
+                throw new ArgumentNullException(nameof(entity));
+            }
+            await base.DeleteAsync(entity); 
+        }
+
+        public async Task<bool> ExistsAsync(int id, int? companyId = null)
+        {
+            var query = _context.Set<Unit>().Where(u => u.Id == id && !u.WasDeleted);
+            if (companyId.HasValue)
+            {
+                query = query.Where(u => u.CompanyId == companyId);
+            }
+            return await query.AnyAsync();
         }
 
     }

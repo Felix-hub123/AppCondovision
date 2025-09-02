@@ -30,10 +30,6 @@ namespace CondoVision.Data.Helper
         /// <summary>
         /// Envia um email assíncrono para o destinatário especificado com o assunto e corpo em HTML.
         /// </summary>
-        /// <param name="email">Endereço de email do destinatário.</param>
-        /// <param name="subject">Assunto do email.</param>
-        /// <param name="htmlMessage">Conteúdo HTML do corpo do email.</param>
-        /// <returns>Um booleano indicando se o envio do email foi bem-sucedido.</returns>
         public async Task<bool> SendEmailAsync(string email, string subject, string htmlMessage)
         {
             try
@@ -41,21 +37,17 @@ namespace CondoVision.Data.Helper
                 var nameFrom = _configuration["Mail:NameFrom"];
                 var from = _configuration["Mail:From"];
                 var smtp = _configuration["Mail:Smtp"];
-                var portStr = _configuration["Mail:Port"]; // Mudei o nome para evitar conflito de tipo
+                var portStr = _configuration["Mail:Port"];
                 var password = _configuration["Mail:Password"];
 
-                // --- AQUI ESTÁ A CORREÇÃO ---
-                // Se a string da porta for nula ou não for um número, use um valor padrão (ex: 587)
                 if (!int.TryParse(portStr, out int port))
                 {
-                    // Se a porta não puder ser convertida, pode registar um erro
-                    // e retornar false, pois não é possível ligar ao servidor.
                     return false;
                 }
 
                 var message = new MimeMessage();
                 message.From.Add(new MailboxAddress(nameFrom ?? from, from));
-                message.To.Add(new MailboxAddress(email, email));
+                message.To.Add(MailboxAddress.Parse(email)); 
                 message.Subject = subject;
 
                 var bodybuilder = new BodyBuilder
@@ -68,7 +60,14 @@ namespace CondoVision.Data.Helper
                 {
                     client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
-                    await client.ConnectAsync(smtp, port, SecureSocketOptions.StartTls);
+                   
+                    SecureSocketOptions security = SecureSocketOptions.StartTls;
+                    if (port == 465)
+                    {
+                        security = SecureSocketOptions.SslOnConnect;
+                    }
+
+                    await client.ConnectAsync(smtp, port, security);
                     await client.AuthenticateAsync(from, password);
                     await client.SendAsync(message);
                     await client.DisconnectAsync(true);
@@ -76,9 +75,9 @@ namespace CondoVision.Data.Helper
 
                 return true;
             }
-            catch (Exception )
+            catch (Exception ex)
             {
-                // ... (registar exceção)
+                Console.WriteLine($"Erro ao enviar email: {ex.Message}");
                 return false;
             }
         }

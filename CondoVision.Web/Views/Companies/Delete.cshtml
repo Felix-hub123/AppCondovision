@@ -1,0 +1,111 @@
+﻿@model CondoVision.Models.CompanyViewModel
+
+@{
+    ViewData["Title"] = "Eliminar Empresa";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section ContentHeader {
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>@ViewData["Title"]</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home">Home</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Companies">Empresas</a></li>
+                    <li class="breadcrumb-item active">@ViewData["Title"]</li>
+                </ol>
+            </div>
+        </div>
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["SuccessMessage"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["ErrorMessage"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+    </div>
+}
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card card-danger card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">Eliminar Empresa</h3>
+                    </div>
+                    <div class="card-body">
+                        @if (Model == null)
+                        {
+                            <div class="alert alert-warning text-center" role="alert">
+                                Empresa não encontrada ou já eliminada.
+                            </div>
+                        }
+                        else
+                        {
+                            <h3>Tem certeza que deseja eliminar esta empresa?</h3>
+                            <p class="text-warning">Esta ação marcará a empresa como excluída e não poderá ser desfeita. Verifique os dados abaixo e note que podem existir dependências (ex.: usuários ou condomínios) afetadas.</p>
+                            <dl class="row">
+                                <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Name)</dt>
+                                <dd class="col-sm-8">@Html.DisplayFor(model => model.Name)</dd>
+                                <dt class="col-sm-4">@Html.DisplayNameFor(model => model.CompanyTaxId)</dt>
+                                <dd class="col-sm-8">@Html.DisplayFor(model => model.CompanyTaxId)</dd>
+                                <dt class="col-sm-4">Data de Criação</dt>
+                                <dd class="col-sm-8">@Model.CreationDate.ToString("dd/MM/yyyy HH:mm")</dd>
+                                <dt class="col-sm-4">Condomínios Associados</dt>
+                                <dd class="col-sm-8">
+                                    @if (Model.Condominiums != null && Model.Condominiums.Any())
+                                    {
+                                        <span class="badge badge-danger">@Model.Condominiums.Count()</span>
+                                        <span class="text-danger">Atenção: Esta empresa possui <strong>@Model.Condominiums.Count()</strong> condomínio(s) associados. A exclusão marcará a empresa como deletada, mas os condomínios associados também serão afetados. Revise antes de prosseguir.</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-success">0</span>
+                                        <span class="text-success">Não há condomínios associados.</span>
+                                    }
+                                </dd>
+                            </dl>
+                        }
+                    </div>
+                    <div class="card-footer">
+                        @if (User.IsInRole("CompanyAdmin") && Model != null)
+                        {
+                            <form asp-action="DeleteConfirmed" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" asp-for="Id" />
+                                <button type="submit" class="btn btn-danger float-right" title="Confirmar eliminação da empresa" aria-label="Confirmar"
+                                        onclick="return confirm('Tem certeza que deseja marcar a empresa \'' + '@Model.Name' + '\' como excluída? Esta ação não pode ser desfeita e pode afetar condomínios ou outros dados associados.');">
+                                    <i class="fas fa-trash"></i> Confirmar Eliminação
+                                </button>
+                            </form>
+                        }
+                        <a asp-action="Index" class="btn btn-secondary" title="Voltar à lista de empresas" aria-label="Voltar">
+                            <i class="fas fa-arrow-left"></i> Voltar à Lista
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

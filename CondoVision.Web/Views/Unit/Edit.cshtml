@@ -1,42 +1,79 @@
-﻿@model CondoVision.Models.UnitViewModel
+﻿@model CondoVision.Models.EditUnitViewModel
 
 @{
-    ViewData["Title"] = "Editar Unidade";
+    ViewData["Title"] = "Editar Unidade: " + Model.UnitName;
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Editar Unidade</h2>
 
-<form asp-action="Edit" method="post">
-    <div class="form-group">
-        <label asp-for="Id" class="control-label"></label>
-        <input asp-for="Id" class="form-control" readonly />
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">@ViewData["Title"]</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Painel">Home</a></li>
+                    <li class="breadcrumb-item"><a asp-controller="Unit" asp-action="Index" asp-route-condominiumId="@ViewBag.CondominiumId">Unidades</a></li>
+                    <li class="breadcrumb-item active">@ViewData["Title"]</li>
+                </ol>
+            </div>
+        </div>
     </div>
-    <div class="form-group">
-        <label asp-for="UnitName" class="control-label"></label>
-        <input asp-for="UnitName" class="form-control" />
-        <span asp-validation-for="UnitName" class="text-danger"></span>
+</div>
+
+
+<section class="content">
+    <div class="container-fluid">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["SuccessMessage"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Editar Unidade</h3>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="Edit" method="post">
+                            <input type="hidden" asp-for="Id" />
+                            <input type="hidden" asp-for="CondominiumId" />
+                            <div class="form-group">
+                                <label asp-for="UnitName" class="col-form-label"></label>
+                                <input asp-for="UnitName" class="form-control" />
+                                <span asp-validation-for="UnitName" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="Permillage" class="col-form-label"></label>
+                                <input asp-for="Permillage" class="form-control" />
+                                <span asp-validation-for="Permillage" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="OwnerId" class="col-form-label"></label>
+                                <select asp-items="ViewBag.Owners" asp-for="OwnerId" class="form-control">
+                                    <option value="">-- Selecione um Proprietário --</option>
+                                </select>
+                                <span asp-validation-for="OwnerId" class="text-danger"></span>
+                            </div>
+                            <div class="card-footer text-right">
+                                <a asp-action="Index" asp-route-condominiumId="@ViewBag.CondominiumId" class="btn btn-secondary">Cancelar</a>
+                                <button type="submit" class="btn btn-primary">Guardar</button>
+                            </div>
+                            @Html.AntiForgeryToken()
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="form-group">
-        <label asp-for="Permillage" class="control-label"></label>
-        <input asp-for="Permillage" class="form-control" />
-        <span asp-validation-for="Permillage" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label asp-for="OwnerId" class="control-label"></label>
-        <select asp-for="OwnerId" class="form-control" asp-items="ViewBag.Owners"></select>
-        <span asp-validation-for="OwnerId" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label asp-for="CondominiumId" class="control-label"></label>
-        <input asp-for="CondominiumId" class="form-control" readonly />
-    </div>
-    <div class="form-group">
-        <input type="submit" value="Salvar" class="btn btn-primary" />
-    </div>
-    <input type="hidden" asp-for="Id" />
-    <input type="hidden" asp-for="CondominiumId" />
-    <a asp-action="Index" asp-route-condominiumId="@Model.CondominiumId" class="btn btn-secondary">Cancelar</a>
-</form>
+</section>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

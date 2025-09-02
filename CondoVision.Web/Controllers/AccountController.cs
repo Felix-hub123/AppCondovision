@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
 
 namespace CondoVision.Web.Controllers
 {
@@ -20,13 +19,15 @@ namespace CondoVision.Web.Controllers
         private readonly IEMailHelper _mailHelper;
         private readonly IUserRepository _userRepository;
         private readonly IConverterHelper _converterHelper;
+        private readonly ICompanyRepository _companyRepository;
 
-        public AccountController(UserManager<User> userManager, 
+        public AccountController(UserManager<User> userManager,
             SignInManager<User> signInManager,
             RoleManager<IdentityRole> roleManager,
             IEMailHelper mailHelper,
             IUserRepository userRepository,
-            IConverterHelper converterHelper)
+            IConverterHelper converterHelper,
+            ICompanyRepository companyRepository)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -34,23 +35,27 @@ namespace CondoVision.Web.Controllers
             _mailHelper = mailHelper;
             _userRepository = userRepository;
             _converterHelper = converterHelper;
+            _companyRepository = companyRepository;
         }
 
 
 
+        [Authorize(Roles = "CompanyAdmin")]
         public async Task<IActionResult> Index(string searchString, string sortOrder, int? companyId, int page = 1, int pageSize = 10)
         {
             var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null || !User.IsInRole("AdminCompany"))
-                return Forbid(); 
+            if (currentUser == null || currentUser?.CompanyId == null)
+                return Forbid();
 
-            companyId = companyId ?? currentUser.CompanyId; 
+            companyId = companyId ?? currentUser.CompanyId;
 
+            ViewData["CurrentSort"] = sortOrder;
             ViewData["CurrentFilter"] = searchString;
             ViewData["EmailSortParm"] = string.IsNullOrEmpty(sortOrder) ? "email_desc" : "";
             ViewData["NameSortParm"] = sortOrder == "name" ? "name_desc" : "name";
 
-            var usersQuery = _userRepository.GetAllQueryable().Where(u => u.CompanyId == companyId);
+            var usersQuery = _userRepository.GetAllQueryable(companyId.Value)
+                .Where(u => !u.WasDeleted);
 
             if (!string.IsNullOrEmpty(searchString))
             {
@@ -71,149 +76,235 @@ namespace CondoVision.Web.Controllers
                 .Take(pageSize)
                 .ToList();
 
-            var model = _converterHelper.ToUserListViewModel(users);
-            ViewBag.TotalPages = (int)Math.Ceiling((double)totalUsers / pageSize);
-            ViewBag.CurrentPage = page;
+            var model = new UserListViewModelWrapper
+            {
+                Items = _converterHelper.ToUserListViewModelList(users),
+                TotalPages = (int)Math.Ceiling((double)totalUsers / pageSize),
+                CurrentPage = page
+            };
 
             return View(model);
         }
 
 
 
-        // GET: Register
-        public IActionResult Register()
+        public async Task<IActionResult> Create()
         {
-            return View();
-        }
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null || !currentUser.CompanyId.HasValue)
+            {
+                return NotFound("Utilizador sem empresa associada.");
+            }
 
+            var model = new CreateUserViewModel { CompanyId = currentUser.CompanyId.Value };
+            await PopulateViewBagsAsync(model);
+            return View(model);
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterUserViewModel model)
+        [Authorize(Roles = "CompanyAdmin")]
+        public async Task<IActionResult> Create(CreateUserViewModel model)
         {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null || !currentUser.CompanyId.HasValue)
+                return NotFound("Utilizador sem empresa associada.");
+
+            if (model.CompanyId != currentUser.CompanyId)
+                ModelState.AddModelError(string.Empty, "Você só pode criar usuários para sua empresa.");
+
             if (ModelState.IsValid)
             {
-                if (model.Password != model.ConfirmPassword)
+                var existingUser = await _userManager.FindByEmailAsync(model.Email!);
+                if (existingUser != null)
                 {
-                    ModelState.AddModelError(string.Empty, "As senhas não coincidem.");
+                    ModelState.AddModelError(string.Empty, "Este e-mail já está em uso.");
+                    await PopulateViewBagsAsync(model);
                     return View(model);
                 }
 
                 var user = _converterHelper.ToUser(model);
-                var result = await _userManager.CreateAsync(user, model.Password!);
+                user.CompanyId = currentUser.CompanyId;
+
+               
+                var result = await _userManager.CreateAsync(user);
+
                 if (result.Succeeded)
                 {
-                    await _userManager.AddToRoleAsync(user, model.Role ?? "Condómino");
-                    await _userRepository.AddAsync(user);
-                    var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    var link = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, token }, protocol: HttpContext.Request.Scheme);
-                    await _mailHelper.SendEmailAsync(user.Email!, "Confirmação de E-mail", $"Confirme seu e-mail <a href='{link}'>aqui</a>.");
-                    return RedirectToAction("Login");
-                }
-                AddErrors(result);
-            }
-                   ViewBag.Roles = new List<SelectListItem>
-                   {
-                      new SelectListItem { Value = "AdminCompany", Text = "Administrador de Empresa" },
-                      new SelectListItem { Value = "CondoManager", Text = "Gestor de Condomínio" },
-                      new SelectListItem { Value = "Condómino", Text = "Condómino" }
-                   };
-                   return View(model);
-        }
+                    var allowedRoles = new[] { "Condômino", "CondoManager", "CompanyAdmin" };
+                    var role = !string.IsNullOrEmpty(model.RoleName) && allowedRoles.Contains(model.RoleName)
+                        ? model.RoleName
+                        : "Condômino";
 
+                    await _userManager.AddToRoleAsync(user, role);
 
-        public IActionResult Create()
-        {
-            return View();
-        }
+                  
+                    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                    var setPasswordLink = Url.Action(
+                        "ResetPassword",
+                        "Account",
+                        new { token, email = user.Email },
+                        protocol: HttpContext.Request.Scheme
+                    );
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(RegisterUserViewModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                
-                var user = _converterHelper.ToUser(model);
+                    var emailMessage = $"Olá {user.FullName},<br/><br/>" +
+                                       $"Você foi registrado no CondoVision. Para criar sua senha e acessar sua conta, clique no link abaixo:<br/>" +
+                                       $"<a href='{setPasswordLink}'>Criar minha senha</a><br/><br/>" +
+                                       $"Se não solicitou este cadastro, ignore este e-mail.";
 
-                var result = await _userManager.CreateAsync(user, model.Password!);
-                if (result.Succeeded)
-                {
-                    await _userManager.AddToRoleAsync(user, "CondoOwner"); 
-                    await _userRepository.AddAsync(user); 
+                    await _mailHelper.SendEmailAsync(user.Email!, "Crie sua senha no CondoVision", emailMessage);
+
+                    TempData["SuccessMessage"] = "Usuário criado com sucesso! Um e-mail foi enviado para definir a senha.";
                     return RedirectToAction(nameof(Index));
                 }
-                AddErrors(result);
+
+                AddIdentityErrors(result);
             }
+
+            await PopulateViewBagsAsync(model);
             return View(model);
         }
 
-      
+
+        private async Task PopulateViewBagsAsync(CreateUserViewModel model)
+        {
+            ViewBag.Roles = new List<SelectListItem>
+            {
+                 new SelectListItem { Value = "Condômino", Text = "Condômino" },
+                 new SelectListItem { Value = "CondoManager", Text = "Gestor de Condomínio" },
+                 new SelectListItem { Value = "CompanyAdmin", Text = "Administrador de Empresa" }
+            };
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null || !currentUser.CompanyId.HasValue)
+            {
+                ViewBag.Companies = new List<SelectListItem>
+                {
+                   new SelectListItem { Value = "", Text = "Sem empresas disponíveis" }
+                };
+                return;
+            }
+
+            try
+            {
+                var companies = await _companyRepository.GetCompaniesByCompanyIdAsync(currentUser.CompanyId.Value);
+                var companyItems = companies
+                    .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name })
+                    .ToList();
+                ViewBag.Companies = companyItems.Any() ? companyItems : new List<SelectListItem>
+                {
+                     new SelectListItem { Value = currentUser.CompanyId.ToString(), Text = "Sem empresas adicionais" }
+                };
+            }
+            catch (Exception )
+            {
+
+                ViewBag.Companies = new List<SelectListItem>
+                {
+                     new SelectListItem { Value = currentUser.CompanyId.ToString(), Text = "Erro ao carregar empresas" }
+                };
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ConfirmEmail(string userId, string token)
+        {
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
+            {
+                return View("Error", new { Message = "Token ou ID de utilizador inválido." });
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return View("Error", new { Message = "Utilizador não encontrado." });
+            }
+
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+            if (result.Succeeded)
+            {
+                return View("ConfirmEmailSuccess");
+            }
+            return View("Error", new { Message = "Falha ao confirmar e-mail." });
+        }
+
+        [Authorize(Roles = "CompanyAdmin")]
         public async Task<IActionResult> Edit(string id)
         {
-            var user = await _userRepository.GetByIdAsync(id);
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null || currentUser?.CompanyId == null)
+                return Forbid();
+
+            var user = await _userRepository.GetByIdAsync(id, currentUser.CompanyId);
             if (user == null)
                 return NotFound();
 
-            
             var model = _converterHelper.ToEditProfileViewModel(user);
             return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "CompanyAdmin")]
         public async Task<IActionResult> Edit(string id, EditProfileViewModel model)
         {
             if (id != model.Id)
                 return NotFound();
 
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null || currentUser?.CompanyId == null)
+                return Forbid();
+
             if (ModelState.IsValid)
             {
-                var user = await _userRepository.GetByIdAsync(id);
+                var user = await _userRepository.GetByIdAsync(id, currentUser.CompanyId);
                 if (user != null)
                 {
-                    // Atualiza a entidade User existente com os dados do ViewModel
                     var updatedUser = _converterHelper.ToUser(model, user);
-
                     var result = await _userManager.UpdateAsync(updatedUser);
                     if (result.Succeeded)
                     {
-                        await _userRepository.UpdateAsync(updatedUser); // Salva no repositório
+                        await _userRepository.UpdateAsync(updatedUser);
                         return RedirectToAction(nameof(Index));
                     }
-                    AddErrors(result);
+                    return View(model);
                 }
             }
             return View(model);
         }
 
-        // Eliminar utilizador
+        [Authorize(Roles = "CompanyAdmin")]
         public async Task<IActionResult> Delete(string id)
         {
-            var user = await _userManager.FindByIdAsync(id);
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null || currentUser?.CompanyId == null)
+                return Forbid();
+
+            var user = await _userRepository.GetByIdAsync(id, currentUser.CompanyId);
             if (user == null)
                 return NotFound();
             return View(user);
         }
 
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
+        [ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "CompanyAdmin")]
         public async Task<IActionResult> DeleteConfirmed(string id)
         {
-            var user = await _userManager.FindByIdAsync(id);
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null || currentUser?.CompanyId == null)
+                return Forbid();
+
+            var user = await _userRepository.GetByIdAsync(id, currentUser.CompanyId);
             if (user != null)
             {
-                var result = await _userManager.DeleteAsync(user);
-                if (result.Succeeded)
-                {
-                    return RedirectToAction(nameof(Index));
-                }
-                AddErrors(result);
+                await _userRepository.DeleteAsync(user); // Usa soft delete
+                return RedirectToAction(nameof(Index));
             }
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Login
         public IActionResult Login()
         {
             return View();
@@ -236,6 +327,13 @@ namespace CondoVision.Web.Controllers
                     return View(model);
                 }
 
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user != null && !await _userManager.IsEmailConfirmedAsync(user))
+                {
+                    ModelState.AddModelError(string.Empty, "Por favor, confirme seu e-mail antes de fazer login.");
+                    return View(model);
+                }
+
                 var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
@@ -246,11 +344,25 @@ namespace CondoVision.Web.Controllers
             return View(model);
         }
 
-       
 
-      
 
-        // Logout
+        private string GenerateRandomPassword()
+        {
+            const string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+            var random = new Random();
+            return new string(Enumerable.Repeat(validChars, 12)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        private void AddErrors(IdentityResult result)
+        {
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+        }
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
@@ -259,10 +371,14 @@ namespace CondoVision.Web.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        [Authorize(Roles = "AdminCompany")]
+        [Authorize(Roles = "CompanyAdmin")]
         public async Task<IActionResult> ManageUsers()
         {
-            var users = await _userManager.Users.ToListAsync();
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null || currentUser?.CompanyId == null)
+                return Forbid();
+
+            var users = await _userRepository.GetAllAsync(currentUser.CompanyId);
             return View(users);
         }
 
@@ -308,52 +424,43 @@ namespace CondoVision.Web.Controllers
             return View(model);
         }
 
-        // GET: ForgotPasswordConfirmation
+
         public IActionResult ForgotPasswordConfirmation()
         {
             return View();
         }
 
-        // GET: ResetPassword
-        public IActionResult ResetPassword(string token, string email)
+
+        [Authorize]
+        public IActionResult ChangePassword()
         {
-            var model = new ResetPasswordViewModel { Token = token, NewPassword = email };
-            return View(model);
+            return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        [Authorize]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
         {
             if (ModelState.IsValid)
             {
-                if (string.IsNullOrEmpty(model.NewPassword))
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
                 {
-                    ModelState.AddModelError(string.Empty, "O e-mail é obrigatório.");
-                    return View(model);
-                }
-                if (string.IsNullOrEmpty(model.Token))
-                {
-                    ModelState.AddModelError(string.Empty, "O token é obrigatório.");
-                    return View(model);
-                }
-                if (string.IsNullOrEmpty(model.NewPassword))
-                {
-                    ModelState.AddModelError(string.Empty, "A nova senha é obrigatória.");
-                    return View(model);
+                    return NotFound("Utilizador não encontrado.");
                 }
 
-                var user = await _userManager.FindByEmailAsync(model.NewPassword);
-                if (user != null)
+                var result = await _userManager.ChangePasswordAsync(user, model.OldPassword!, model.NewPassword!);
+                if (result.Succeeded)
                 {
-                    var result = await _userManager.ResetPasswordAsync(user, model.Token, model.NewPassword);
-                    if (result.Succeeded)
-                    {
-                        return RedirectToAction("ResetPasswordConfirmation");
-                    }
-                    AddErrors(result);
+                    ViewBag.Message = "Senha alterada com sucesso!";
+                    return View();
                 }
-                ModelState.AddModelError(string.Empty, "E-mail ou token inválido.");
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
             }
             return View(model);
         }
@@ -364,13 +471,15 @@ namespace CondoVision.Web.Controllers
             return View();
         }
 
-        private void AddErrors(IdentityResult result)
+        private void AddIdentityErrors(IdentityResult result)
         {
             foreach (var error in result.Errors)
             {
                 ModelState.AddModelError(string.Empty, error.Description);
             }
         }
+
+
 
         [Authorize(Roles = "CompanyAdmin")]
         public async Task<IActionResult> ManageRoles(string userId)
@@ -475,6 +584,8 @@ namespace CondoVision.Web.Controllers
             ModelState.AddModelError(string.Empty, "Código de verificação inválido.");
             return View(model);
         }
+
+
 
 
         [HttpPost("api/register")]

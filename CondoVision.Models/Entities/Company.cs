@@ -3,6 +3,7 @@ using CondoVision.Models.Interface;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,6 +27,8 @@ namespace CondoVision.Data.Entities
         [MaxLength(100)]
         public string? Contact { get; set; }
 
+        public string? CreatedById { get; set; }
+
         [MaxLength(100)]
         public Guid? LogoId { get; set; }
 
@@ -36,7 +39,8 @@ namespace CondoVision.Data.Entities
         public ICollection<Condominium> Condominiums { get; set; } = new List<Condominium>();
 
         public User? CreatedBy { get; set; }
+       
 
-        public string? CreatedById { get; set; }
+        public ICollection<Unit>? Units { get; set; }
     }
 }

@@ -9,21 +9,21 @@ namespace CondoVision.Models
 {
     public class ChangePasswordViewModel
     {
-        [Required(ErrorMessage = "O campo {0} é obrigatório.")]
+        [Required]
         [DataType(DataType.Password)]
-        [Display(Name = "Password Atual")]
+        [Display(Name = "Passe Actual")]
         public string? OldPassword { get; set; }
 
-        [Required(ErrorMessage = "O campo {0} é obrigatório.")]
-        [MinLength(6, ErrorMessage = "O campo {0} deve ter pelo menos {1} caracteres.")]
+        [Required]
+        [StringLength(100, MinimumLength = 6)]
         [DataType(DataType.Password)]
-        [Display(Name = "Nova Password")]
+        [Display(Name = "Nova Senha")]
         public string? NewPassword { get; set; }
 
-        [Required(ErrorMessage = "O campo {0} é obrigatório.")]
-        [Compare("NewPassword", ErrorMessage = "A nova password e a confirmação não coincidem.")]
+        [Required]
         [DataType(DataType.Password)]
-        [Display(Name = "Confirmar Nova Password")]
-        public string ConfirmPassword { get; set; } = string.Empty;
+        [Display(Name = "Confirme a Nova Senha")]
+        [Compare("NewPassword", ErrorMessage = "As senhas não correspondem.")]
+        public string? ConfirmPassword { get; set; }
     }
 }

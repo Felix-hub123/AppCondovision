@@ -17,58 +17,69 @@ namespace CondoVision.Data
         }
 
 
-        public async Task<IEnumerable<Company>> GetAllCompaniesAsync()
-        {
-            return await base.GetAllAsync();
-        }
 
         public async Task<Company?> GetCompanyByIdAsync(int id)
         {
-            return await base.GetByIdAsync(id);
+            return await _context.Companies
+                .Include(c => c.Condominiums)
+                .FirstOrDefaultAsync(c => c.Id == id && !c.WasDeleted);
         }
 
         public async Task<Company> AddCompanyAsync(Company company)
         {
-            if (company == null)
-                throw new ArgumentNullException(nameof(company));
-            await base.AddAsync(company);
+            _context.Companies.Add(company);
+            await _context.SaveChangesAsync();
             return company;
         }
 
         public async Task<Company> UpdateCompanyAsync(Company company)
         {
             if (company == null)
+            {
                 throw new ArgumentNullException(nameof(company));
-            await base.UpdateAsync(company);
+            }
+            _context.Companies.Update(company); 
+            await _context.SaveChangesAsync();  
             return company;
         }
 
         public async Task DeleteCompanyAsync(int id)
         {
-            var company = await base.GetByIdAsync(id, true); 
-            if (company != null)
-            {
-                await base.DeleteAsync(company);
-            }
-            else
+            var company = await base.GetByIdAsync(id, true);
+            if (company == null)
             {
                 throw new KeyNotFoundException($"Company with ID {id} was not found.");
             }
+            if (await _context.Users.AnyAsync(u => u.CompanyId == id))
+            {
+                throw new InvalidOperationException("Cannot delete company with associated users.");
+            }
+            company.WasDeleted = true; 
+            await _context.SaveChangesAsync();
         }
 
-       
         public async Task<IEnumerable<Company>> GetActiveCompaniesAsync()
         {
-            var companies = await base.GetAllAsync();
-            return companies.Where(c => !c.WasDeleted && c.CreationDate > DateTime.Now.AddYears(-1));
+            return await _context.Companies
+                .Where(c => !c.WasDeleted && c.CreationDate > DateTime.Now.AddYears(-1))
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Company>> GetCompaniesByCompanyIdAsync(int companyId)
+        {
+            return await _context.Companies
+                .Where(c => c.Id == companyId && !c.WasDeleted)
+                .ToListAsync();
         }
 
         public async Task<Company?> GetCompanyByTaxIdAsync(string taxId)
         {
             if (string.IsNullOrEmpty(taxId))
+            {
                 throw new ArgumentException("Tax ID is required", nameof(taxId));
-            var companies = await base.GetAllAsync();
-            return companies.FirstOrDefault(c => c.CompanyTaxId == taxId && !c.WasDeleted);
+            }
+            return await _context.Companies
+                .FirstOrDefaultAsync(c => c.CompanyTaxId == taxId && !c.WasDeleted);
         }
 
         public async Task<IEnumerable<Company>> GetCompaniesWithCondominiumsAsync()
@@ -78,6 +89,26 @@ namespace CondoVision.Data
                 .Where(c => !c.WasDeleted)
                 .ToListAsync();
         }
+
+        public async Task<List<Company>> GetCompaniesWithCondominiumsAsync(int? companyId = null)
+        {
+            var query = _context.Companies
+                .Include(c => c.Condominiums)
+                .Where(c => !c.WasDeleted);
+            if (companyId.HasValue)
+            {
+                query = query.Where(c => c.Id == companyId.Value);
+            }
+            return await query.ToListAsync();
+        }
+
+        public async Task<bool> IsTaxIdUniqueAsync(string taxId, int? excludeId = null)
+        {
+            var query = _context.Companies.Where(c => c.CompanyTaxId == taxId && !c.WasDeleted);
+            if (excludeId.HasValue) query = query.Where(c => c.Id != excludeId.Value);
+            return !await query.AnyAsync();
+        }
+
 
     }
 }

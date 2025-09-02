@@ -4,44 +4,79 @@
     ViewData["Title"] = "Detalhes da Unidade";
 }
 
-<h2>Detalhes da Unidade</h2>
 
-<div>
-    <h4>Unidade</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Id)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Id)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.UnitName)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.UnitName)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Permillage)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Permillage)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.OwnerFullName)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.OwnerFullName)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.CondominiumName)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.CondominiumName)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Index" asp-route-condominiumId="@Model.CondominiumId" class="btn btn-secondary">Voltar</a>
+<nav class="bg-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+            <div class="flex items-center">
+                <a class="text-xl font-bold text-blue-600" href="#">CondoVision</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a class="text-gray-600 hover:text-gray-900" asp-action="Index" asp-controller="Home">Início</a>
+                <a class="text-gray-600 hover:text-gray-900" asp-action="Logout" asp-controller="Account">Sair</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Detalhes da Unidade</h1>
+
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900">Informações da Unidade</h2>
+        </div>
+        <div class="px-6 py-4">
+            <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <dt class="text-sm font-medium text-gray-500">@Html.DisplayNameFor(model => model.Id)</dt>
+                    <dd class="mt-1 text-sm text-gray-900">@Html.DisplayFor(model => model.Id)</dd>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <dt class="text-sm font-medium text-gray-500">@Html.DisplayNameFor(model => model.UnitName)</dt>
+                    <dd class="mt-1 text-sm text-gray-900">@Html.DisplayFor(model => model.UnitName)</dd>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <dt class="text-sm font-medium text-gray-500">@Html.DisplayNameFor(model => model.Permillage)</dt>
+                    <dd class="mt-1 text-sm text-gray-900">@Html.DisplayFor(model => model.Permillage)</dd>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <dt class="text-sm font-medium text-gray-500">@Html.DisplayNameFor(model => model.OwnerFullName)</dt>
+                    <dd class="mt-1 text-sm text-gray-900">@Html.DisplayFor(model => model.OwnerFullName)</dd>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-lg md:col-span-2">
+                    <dt class="text-sm font-medium text-gray-500">@Html.DisplayNameFor(model => model.CondominiumName)</dt>
+                    <dd class="mt-1 text-sm text-gray-900">@Html.DisplayFor(model => model.CondominiumName)</dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+
+    <div class="mt-6 flex space-x-3">
+        <a asp-action="Index" asp-route-condominiumId="@Model.CondominiumId"
+           class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg inline-flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Voltar
+        </a>
+        <a asp-action="Edit" asp-route-id="@Model.Id"
+           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg inline-flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+            Editar
+        </a>
+        <a asp-action="Delete" asp-route-id="@Model.Id"
+           class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg inline-flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+            Eliminar
+        </a>
+    </div>
 </div>

@@ -87,6 +87,8 @@ namespace CondoVision.Data
         Task<bool> ExistsAsync(int id);
 
 
+        Task<List<T>> GetRecentAsync(int take = 5);
+
     }
 
 

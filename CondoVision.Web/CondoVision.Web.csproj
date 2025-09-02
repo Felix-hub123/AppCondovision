@@ -6,8 +6,21 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<OutputType>Exe</OutputType>
 		<GenerateDocumentationFile>false</GenerateDocumentationFile>
+		<UserSecretsId>f818342e-2803-4e77-818c-2dd83d9db066</UserSecretsId>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <Compile Remove="wwwroot\lib\coreui\**" />
+	  <Content Remove="wwwroot\lib\coreui\**" />
+	  <EmbeddedResource Remove="wwwroot\lib\coreui\**" />
+	  <None Remove="wwwroot\lib\coreui\**" />
+	</ItemGroup>
+	<ItemGroup>
+		<UpToDateCheckBuilt Include="wwwroot/css/site.css" Set="Css" />
+		<UpToDateCheckBuilt Include="tailwind.config.js" Set="Css" />
+	</ItemGroup>
+
+	
 	<ItemGroup>
 		<PackageReference Include="Azure.Data.Tables" Version="12.10.0" />
 		<PackageReference Include="Azure.Storage.Blobs" Version="12.24.0" />
@@ -24,6 +37,7 @@
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.18" />
 		<PackageReference Include="Microsoft.Extensions.Azure" Version="1.11.0" />
 		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
+		<PackageReference Include="WebPx.AdminLTE.AspNetCore" Version="3.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>

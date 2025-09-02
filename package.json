@@ -1,5 +1,31 @@
 {
+  "name": "appcondovision",
+  "version": "1.0.0",
+  "description": "Projeto CondoVision com AdminLTE",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "build:adminlte": "copyfiles -f node_modules/admin-lte/dist/css/adminlte.min.css ./wwwroot/css/ && copyfiles -f node_modules/admin-lte/dist/js/adminlte.min.js ./wwwroot/js/ && copyfiles -f node_modules/admin-lte/plugins/**/* ./wwwroot/plugins/",
+    "install:adminlte": "npm install && npm run build:adminlte"
+  },
+  "devDependencies": {
+    "copyfiles": "^2.4.1"
+  },
   "dependencies": {
-    "admin-lte": "^4.0.0-rc4"
-  }
+    "admin-lte": "^3.2.1",
+    "jquery": "^3.7.1",
+    "bootstrap": "^4.6.2",
+    "@fortawesome/fontawesome-free": "^6.5.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Felix-hub123/AppCondovision.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "keywords": [],
+  "bugs": {
+    "url": "https://github.com/Felix-hub123/AppCondovision/issues"
+  },
+  "homepage": "https://github.com/Felix-hub123/AppCondovision#readme"
 }

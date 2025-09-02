@@ -1,12 +1,7 @@
 ﻿using CondoVision.Models.Entities;
 using CondoVision.Models.Interface;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CondoVision.Data.Entities
 {
@@ -23,20 +18,26 @@ namespace CondoVision.Data.Entities
         [Column(TypeName = "decimal(5, 2)")]
         public decimal Permillage { get; set; }
 
-        public string? OwnerId { get; set; }
-        [ForeignKey("OwnerId")]
-        public User? Owner { get; set; }
 
-       
+        public int? CompanyId { get; set; }
+
+
+        public Company? Company { get; set; }
+
         [Required]
         public int CondominiumId { get; set; }
-        [ForeignKey("CondominiumId")]
+
+        public string? OwnerId { get; set; }
+
         public Condominium? Condominium { get; set; }
+
+
+        public ICollection<FractionOwner>? FractionOwners { get; set; }
 
 
         public bool WasDeleted { get; set; }
     }
 }
 
-    
+
 

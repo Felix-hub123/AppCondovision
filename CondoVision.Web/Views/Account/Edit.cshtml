@@ -15,9 +15,10 @@
                     </h4>
                 </div>
                 <div class="card-body p-4">
-                    <form asp-action="Edit" method="post">
+                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
                         <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="ImageId" />
 
                         <div class="mb-3">
                             @Html.LabelFor(m => m.FullName, new { @class = "form-label fw-semibold" })
@@ -29,13 +30,19 @@
                             @Html.LabelFor(m => m.Email, new { @class = "form-label fw-semibold" })
                             @Html.TextBoxFor(m => m.Email, new { @class = "form-control", @readonly = "readonly" })
                             <small class="text-muted">O email não pode ser alterado.</small>
-                            @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+                  
                         </div>
 
                         <div class="mb-3">
                             @Html.LabelFor(m => m.PhoneNumber, new { @class = "form-label fw-semibold" })
                             @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control" })
                             @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.ImageFile, new { @class = "form-label fw-semibold" })
+                            <input asp-for="ImageFile" type="file" class="form-control" accept="image/*" />
+                            @Html.ValidationMessageFor(m => m.ImageFile, "", new { @class = "text-danger" })
                         </div>
 
                         <div class="d-flex justify-content-between mt-4">
@@ -47,6 +54,11 @@
                             </a>
                         </div>
                     </form>
+
+                    @if (!string.IsNullOrEmpty(ViewBag.Message))
+                    {
+                        <div class="alert alert-success mt-3 text-center">@ViewBag.Message</div>
+                    }
                 </div>
             </div>
         </div>

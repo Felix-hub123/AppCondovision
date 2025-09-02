@@ -1,7 +1,7 @@
 ﻿@model CondoVision.Models.CondominiumViewModel
 
 @{
-    
+    ViewData["Title"] = "Eliminar Condomínio";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -31,8 +31,13 @@
                         <h3 class="card-title"><i class="fas fa-exclamation-triangle"></i> Confirmação de Eliminação</h3>
                     </div>
                     <div class="card-body">
-                        <h3 class="lead text-center mb-4">Tem a certeza de que quer eliminar este condomínio?</h3>
+                        <h3 class="lead text-center mb-4">Tem a certeza de que quer marcar este condomínio como excluído?</h3>
                         <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                        @if (TempData["ErrorMessage"] != null)
+                        {
+                            <div class="alert alert-danger mb-4">@TempData["ErrorMessage"]</div>
+                        }
 
                         <dl class="row">
                             <dt class="col-sm-4">
@@ -74,7 +79,7 @@
                     <div class="card-footer text-center">
                         <div class="d-grid gap-2">
                             <button type="button" class="btn btn-condovision-delete" data-bs-toggle="modal" data-bs-target="#confirmDeleteModalCondominium" aria-describedby="deleteHelp">
-                                <i class="fas fa-trash-alt me-2"></i> Eliminar Condomínio
+                                <i class="fas fa-trash-alt me-2"></i> Marcar como Excluído
                             </button>
                             <a asp-action="Index" class="btn btn-condovision-back" aria-describedby="backHelp">
                                 <i class="fas fa-arrow-left me-2"></i> Voltar para a Lista
@@ -97,18 +102,18 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Tem a certeza de que quer eliminar o condomínio **@Model.Name**?</p>
-                <p class="text-danger"><small>Esta ação fará um soft-delete e não poderá ser desfeita diretamente por aqui.</small></p>
+                <p>Tem a certeza de que quer marcar o condomínio **@Model.Name** como excluído?</p>
+                <p class="text-danger"><small>Esta ação fará um soft-delete e não poderá ser desfeita diretamente por aqui. O condomínio será apenas marcado como excluído.</small></p>
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <form asp-action="Delete" method="post">
+                <form asp-action="DeleteConfirmed" method="post">
                     <input type="hidden" asp-for="Id" />
                     <button type="submit" class="btn btn-condovision-delete" aria-describedby="confirmHelp">
-                        <i class="fas fa-trash-alt me-2"></i> Confirmar Eliminação
+                        <i class="fas fa-trash-alt me-2"></i> Confirmar Marcação como Excluído
                     </button>
-                    <small id="confirmHelp" class="form-text text-muted">Esta ação marcará o condomínio como excluído.</small>
+                    <small id="confirmHelp" class="form-text text-muted">Esta ação marcará o condomínio como excluído no sistema.</small>
                 </form>
             </div>
         </div>

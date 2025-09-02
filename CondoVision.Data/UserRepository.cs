@@ -12,30 +12,34 @@ namespace CondoVision.Data
             _context = context;
         }
 
-        public async Task<IEnumerable<User>> GetAllAsync()
+        public async Task<IEnumerable<User>> GetAllAsync(int? companyId = null)
         {
-            return await _context.Users.ToListAsync(); 
-        }
-
-        public IQueryable<User> GetAllQueryable()
-        {
-            return _context.Set<User>().AsNoTracking().Where(u => !u.WasDeleted);
-        }
-
-        public async Task<User> GetByIdAsync(string id)
-        {
-            if (string.IsNullOrEmpty(id))
-                throw new ArgumentNullException(nameof(id));
-
-            var user = await _context.Set<User>()
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Id == id && !u.WasDeleted);
-
-            if (user == null)
+            var query = _context.Users.AsQueryable();
+            if (companyId.HasValue)
             {
-                throw new KeyNotFoundException($"User with ID {id} was not found.");
+                query = query.Where(u => u.CompanyId == companyId);
             }
-            return user;
+            return await query.ToListAsync();
+        }
+
+        public IQueryable<User> GetAllQueryable(int? companyId = null)
+        {
+            var query = _context.Set<User>().AsNoTracking().Where(u => !u.WasDeleted);
+            if (companyId.HasValue)
+            {
+                query = query.Where(u => u.CompanyId == companyId);
+            }
+            return query;
+        }
+
+        public async Task<User> GetByIdAsync(string id, int? companyId = null)
+        {
+            if (string.IsNullOrEmpty(id)) throw new ArgumentNullException(nameof(id));
+
+            var query = _context.Set<User>().AsNoTracking().Where(u => !u.WasDeleted);
+            if (companyId.HasValue) query = query.Where(u => u.CompanyId == companyId);
+
+            return await query.FirstOrDefaultAsync(u => u.Id == id) ?? throw new KeyNotFoundException($"User with ID {id} was not found.");
         }
 
         public async Task AddAsync(User entity)
@@ -50,7 +54,10 @@ namespace CondoVision.Data
         public void Update(User entity)
         {
             if (entity == null)
+            {
                 throw new ArgumentNullException(nameof(entity));
+            }
+                
 
             _context.Set<User>().Update(entity);
         }
@@ -90,33 +97,45 @@ namespace CondoVision.Data
 
         public async Task DeleteAsync(User entity)
         {
-            if (entity == null)
-                throw new ArgumentNullException(nameof(entity));
-
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
             entity.WasDeleted = true;
             _context.Entry(entity).State = EntityState.Modified;
             await SaveChangesAsync();
         }
 
-        public async Task<bool> ExistsAsync(string id)
+        public async Task<bool> ExistsAsync(string id, int? companyId = null)
         {
             if (string.IsNullOrEmpty(id))
                 throw new ArgumentNullException(nameof(id));
 
-            return await _context.Set<User>().AnyAsync(u => u.Id == id && !u.WasDeleted);
+            var query = _context.Set<User>().Where(u => !u.WasDeleted);
+            if (companyId.HasValue)
+            {
+                query = query.Where(u => u.CompanyId == companyId);
+            }
+            return await query.AnyAsync(u => u.Id == id);
         }
 
-        public async Task<string?> GetUserNameByIdAsync(string userId)
+        public async Task<string?> GetUserNameByIdAsync(string userId, int? companyId = null)
         {
             if (string.IsNullOrEmpty(userId))
                 throw new ArgumentNullException(nameof(userId));
 
-            var user = await _context.Set<User>()
+            var query = _context.Set<User>()
                 .AsNoTracking()
-                .Where(u => !u.WasDeleted)
-                .FirstOrDefaultAsync(u => u.Id == userId);
+                .Where(u => !u.WasDeleted);
+            if (companyId.HasValue)
+            {
+                query = query.Where(u => u.CompanyId == companyId);
+            }
 
+            var user = await query.FirstOrDefaultAsync(u => u.Id == userId);
             return user?.UserName;
+        }
+
+        public async Task<int> CompleteAsync()
+        {
+            return await _context.SaveChangesAsync();
         }
     }
 

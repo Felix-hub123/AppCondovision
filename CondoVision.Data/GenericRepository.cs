@@ -110,7 +110,15 @@ namespace CondoVision.Data
             return await _context.Set<T>().AnyAsync(e => e.Id == id && !e.WasDeleted);
         }
 
-     
+        public async Task<List<T>> GetRecentAsync(int take = 5)
+        {
+            return await GetAllQueryable()
+                .OrderByDescending(e => EF.Property<DateTime>(e, "CreatedAt")) 
+                .Take(take)
+                .ToListAsync();
+        }
+
+
     }
 
 

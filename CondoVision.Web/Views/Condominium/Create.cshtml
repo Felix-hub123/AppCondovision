@@ -1,7 +1,7 @@
 ﻿@model CondoVision.Models.CreateCondominiumViewModel
 
 @{
-    
+    ViewData["Title"] = "Criar Condomínio";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -16,6 +16,11 @@
                     </div>
                     <div class="card-body">
                         @await Html.PartialAsync("_MessagesPartial")
+
+                        @if (TempData["ErrorMessage"] != null)
+                        {
+                            <div class="alert alert-danger mb-4">@TempData["ErrorMessage"]</div>
+                        }
 
                         <form asp-action="Create" method="post">
                             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
@@ -49,12 +54,20 @@
                             </div>
 
                             <div class="mb-3">
-                                <label asp-for="CompanyId" class="form-label"></label>
-                                <select asp-for="CompanyId" asp-items="Model.Companies ?? Enumerable.Empty<SelectListItem>()" class="form-select" aria-label="Selecione uma Empresa">
-                                    <option value="">-- Selecione uma Empresa --</option>
-                                </select>
+                                <label asp-for="CompanyId" class="form-label">Empresa</label>
+                                @if (User.IsInRole("CompanyAdmin"))
+                                {
+                                    <select asp-for="CompanyId" asp-items="Model.Companies ?? Enumerable.Empty<SelectListItem>()" class="form-select" aria-label="Selecione uma Empresa">
+                                        <option value="">-- Selecione uma Empresa --</option>
+                                    </select>
+                                }
+                                else
+                                {
+                                    <input type="text" class="form-control" value="@(Model.Companies?.FirstOrDefault()?.Text ?? "Nenhuma")" readonly />
+                                    <input type="hidden" asp-for="CompanyId" />
+                                }
                                 <span asp-validation-for="CompanyId" class="text-danger"></span>
-                                <div id="companyHelp" class="form-text">Selecione a empresa associada ao condomínio (opcional).</div>
+                                <div id="companyHelp" class="form-text">Selecione a empresa associada ao condomínio.</div>
                             </div>
 
                             <div class="d-grid gap-2 mt-4">

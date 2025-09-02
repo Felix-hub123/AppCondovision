@@ -1,0 +1,14 @@
+{
+  "version": "3.0",
+  "defaultProvider": "unpkg",
+  "libraries": [
+    {
+      "library": "@coreui/coreui@5.4.2",
+      "destination": "wwwroot/coreui"
+    },
+    {
+      "library": "@coreui/icons@3.0.1",
+      "destination": "wwwroot/coreui/icons"
+    }
+  ]
+}

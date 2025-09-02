@@ -14,6 +14,11 @@
                         <p class="section-subtitle">Altere os dados do condomínio selecionado.</p>
                     </div>
                     <div class="card-body">
+                        @if (TempData["ErrorMessage"] != null)
+                        {
+                            <div class="alert alert-danger mb-4">@TempData["ErrorMessage"]</div>
+                        }
+
                         <form asp-action="Edit" method="post">
                             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
                             <input type="hidden" asp-for="Id" />
@@ -22,35 +27,45 @@
 
                             <div class="mb-3">
                                 <label asp-for="Name" class="form-label"></label>
-                                <input asp-for="Name" class="form-control">
+                                <input asp-for="Name" class="form-control" />
                                 <span asp-validation-for="Name" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
                                 <label asp-for="Address" class="form-label"></label>
-                                <input asp-for="Address" class="form-control">
+                                <input asp-for="Address" class="form-control" />
                                 <span asp-validation-for="Address" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
                                 <label asp-for="City" class="form-label"></label>
-                                <input asp-for="City" class="form-control">
+                                <input asp-for="City" class="form-control" />
                                 <span asp-validation-for="City" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
                                 <label asp-for="PostalCode" class="form-label"></label>
-                                <input asp-for="PostalCode" class="form-control">
+                                <input asp-for="PostalCode" class="form-control" />
                                 <span asp-validation-for="PostalCode" class="text-danger"></span>
                             </div>
 
-                            <div class="mb-3">
-                                <label asp-for="CompanyId" class="form-label"></label>
-                                <select asp-for="CompanyId" asp-items="Model.Companies" class="form-select">
-                                    <option value="">-- Selecione uma Empresa --</option>
-                                </select>
-                                <span asp-validation-for="CompanyId" class="text-danger"></span>
-                            </div>
+                            @if (User.IsInRole("CompanyAdmin"))
+                            {
+                                <div class="mb-3">
+                                    <label asp-for="CompanyId" class="form-label">Empresa</label>
+                                    <select asp-for="CompanyId" asp-items="Model.Companies ?? ViewBag.Companies as List<SelectListItem>" class="form-select">
+                                        <option value="">-- Selecione uma Empresa --</option>
+                                    </select>
+                                    <span asp-validation-for="CompanyId" class="text-danger"></span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label">Empresa</label>
+                                    <input type="text" class="form-control" value="@ViewBag.CompanyName" readonly />
+                                </div>
+                            }
 
                             <div class="d-grid gap-2 mt-4">
                                 <button type="submit" class="btn btn-lg btn-condovision-save">

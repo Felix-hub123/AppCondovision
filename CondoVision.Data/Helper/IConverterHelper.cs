@@ -12,13 +12,23 @@ namespace CondoVision.Data.Helper
     public interface IConverterHelper
     {
         EditUserViewModel ToEditUserViewModel(User user, string roleName);
+
+
+        User ToUser(CreateUserViewModel model);
+
         User ToUser(CreateUserViewModel model, int companyId);
-        User ToUser(EditUserViewModel model);
+
+        List<UserListViewModel> ToUserListViewModelList(IEnumerable<User> users);
+        
+
+            User ToUser(EditUserViewModel model);
 
         User ToUser(EditUserViewModel model, User user);
 
         User ToUser(RegisterUserViewModel model);
+
         EditProfileViewModel ToEditProfileViewModel(User user);
+
         User ToUser(EditProfileViewModel model, User existingUser);
 
         Condominium ToCondominium(CreateCondominiumViewModel model);
@@ -42,6 +52,11 @@ namespace CondoVision.Data.Helper
 
         UnitViewModel ToViewModel(Unit unit);
 
+        EditUnitViewModel ToEditUnitViewModel(Unit unit);
+
+        void UpdateUnit(Unit unit, EditUnitViewModel model);
+
+
         IEnumerable<UnitViewModel> ToViewModel(IEnumerable<Unit> units);
 
         Unit ToEntity(UnitViewModel model);
@@ -55,5 +70,9 @@ namespace CondoVision.Data.Helper
         IEnumerable<FractionOwnerViewModel> ToFractionOwnerViewModelList(IEnumerable<FractionOwner> fractionOwners);
 
         List<CondominiumViewModel> ToCondominiumViewModelList(List<Condominium> condominiums);
+
+        IEnumerable<CompanyViewModel> ToCompanyViewModelList(IEnumerable<Company> companies);
+
+        void UpdateCondominium(Condominium condominium, EditCondominiumViewModel model);
     }
 }

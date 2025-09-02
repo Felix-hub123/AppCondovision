@@ -23,39 +23,50 @@ namespace CondoVision.Data.Entities
         [StringLength(255)]
         public string? FullName { get; set; }
 
-        /// <summary>
-        /// Defines the user's role type (e.g., "ManagementCompanyAdmin", "CondominiumManager", "CondoOwner", "Employee").
-        /// </summary>
+      
         [Required]
         public string? UserType { get; set; }
-
-       
-
+               
         [Display(Name = "Image")]
         public Guid? ImageId { get; set; } 
 
        public bool WasDeleted { get; set; }
 
-     
-        public ICollection<Unit>? OwnedUnits { get; set; }
+
+        public DateTime? LastLogin { get; set; }
+
+        public string ProfileImageUrl { get; set; } = string.Empty;
 
         public string ImageFullPath => ImageId == Guid.Empty
             ? $"/images/users/noimage.png"
             : $"https://condovision.blob.core.windows.net/users/{ImageId}.jpg";
 
-        public int CompanyId { get; set; }
+        public int? CompanyId { get; set; }
+
         public string? TaxId { get; set; }
+
         public DateTime DateOfBirth { get; set; }
+
         public string? Address { get; set; }
 
-
-        public ICollection<Unit>? Units { get; set; }
+        public DateTime CreatedDate { get; set; }
 
 
         /// <summary>
         /// Navigation property for associated condominiums (if applicable, e.g., for managers).
         /// </summary>
+        public Company? Company { get; set; }
 
         public ICollection<CondominiumUser>? CondominiumUsers { get; set; }
+
+        public ICollection<Company>? CreatedCompanies { get; set; }
+
+        public ICollection<FractionOwner> FractionOwners { get; set; } = new List<FractionOwner>();
+
+        public ICollection<RecentActivity>? RecentActivities { get; set; }
+
+        public ICollection<Payment>? Payments { get; set; }
+
+
     }
 }

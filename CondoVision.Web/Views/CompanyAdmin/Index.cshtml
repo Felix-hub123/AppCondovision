@@ -1,129 +1,201 @@
 ﻿@model CondoVision.Models.DashBoardViewModel
 @using System.Text.Json
 
-<section class="content">
-    <div class="container-fluid">
+@{
+    ViewData["Title"] = "Painel de Administração - CondoVision";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
 
-        <!-- Linha 1: Cards Resumo -->
-        <div class="row">
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-info">
-                    <div class="inner">
-                        <h3>@Model.CompaniesCount</h3>
-                        <p>Total de Empresas</p>
-                    </div>
-                    <div class="icon"><i class="fas fa-building"></i></div>
-                    <a href="/Companies" class="small-box-footer">Mais detalhes <i class="fas fa-arrow-circle-right"></i></a>
+<!-- Content Wrapper. Contains page content -->
+<div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0">@ViewData["Title"]</h1>
                 </div>
-            </div>
-
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-success">
-                    <div class="inner">
-                        <h3>@Model.UsersCount</h3>
-                        <p>Total de Utilizadores</p>
-                    </div>
-                    <div class="icon"><i class="fas fa-user"></i></div>
-                    <a href="/Users" class="small-box-footer">Mais detalhes <i class="fas fa-arrow-circle-right"></i></a>
-                </div>
-            </div>
-
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-warning">
-                    <div class="inner">
-                        <h3>@Model.CondominiumsCount</h3>
-                        <p>Total de Condomínios</p>
-                    </div>
-                    <div class="icon"><i class="fas fa-home"></i></div>
-                    <a href="/Condominiums" class="small-box-footer">Mais detalhes <i class="fas fa-arrow-circle-right"></i></a>
-                </div>
-            </div>
-
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-danger">
-                    <div class="inner">
-                        <h3>@Model.PendingInvoicesCount</h3>
-                        <p>Faturas Pendentes</p>
-                    </div>
-                    <div class="icon"><i class="fas fa-file-invoice-dollar"></i></div>
-                    <a href="#" class="small-box-footer">Mais detalhes <i class="fas fa-arrow-circle-right"></i></a>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Home</a></li>
+                        <li class="breadcrumb-item active">Painel de Administração</li>
+                    </ol>
                 </div>
             </div>
         </div>
+    </div>
+    <!-- /.content-header -->
+    <!-- Main content -->
+    <section class="content">
+        <div class="container-fluid">
+            <!-- Alertas de sucesso/erro -->
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <strong>Sucesso!</strong> @TempData["SuccessMessage"]
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <strong>Erro!</strong> @TempData["ErrorMessage"]
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            }
 
-        <!-- Linha 2: Administração e Gráfico -->
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card card-outline card-primary">
-                    <div class="card-header">
-                        <h3 class="card-title">Opções de Administração</h3>
+            <!-- Cards principais -->
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <h3 class="card-title">@Model.CompaniesCount</h3>
+                            <p class="card-text">Empresas Ativas</p>
+                            <a href="#" class="card-link text-white font-weight-bold">Ver Detalhes <i class="fas fa-arrow-right ml-2"></i></a>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <a href="/Companies" class="btn btn-primary btn-block mb-2"><i class="fas fa-building"></i> Empresas</a>
-                                <a href="/Users" class="btn btn-primary btn-block mb-2"><i class="fas fa-user"></i> Utilizadores</a>
-                            </div>
-                            <div class="col-md-6">
-                                <a href="/Condominiums" class="btn btn-primary btn-block mb-2"><i class="fas fa-home"></i> Condomínios</a>
-                                <a href="/Units" class="btn btn-primary btn-block mb-2"><i class="fas fa-key"></i> Unidades</a>
-                            </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <h3 class="card-title">@Model.UsersCount</h3>
+                            <p class="card-text">Utilizadores Registrados</p>
+                            <a href="#" class="card-link text-white font-weight-bold">Ver Detalhes <i class="fas fa-arrow-right ml-2"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <h3 class="card-title">@Model.CondominiumsCount</h3>
+                            <p class="card-text">Condomínios Gerenciados</p>
+                            <a href="#" class="card-link text-white font-weight-bold">Ver Detalhes <i class="fas fa-arrow-right ml-2"></i></a>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-6">
-                <div class="card card-outline card-info">
-                    <div class="card-header">
-                        <h3 class="card-title">Visão Geral dos Dados</h3>
+            <!-- Ações rápidas e gráfico -->
+            <div class="row">
+                <!-- Ações rápidas -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Ações Rápidas</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                @if (User.IsInRole("CompanyAdmin"))
+                                {
+                                    <div class="col-12 mb-2">
+                                        <a asp-action="Create" asp-controller="Companies"
+                                           class="btn btn-success btn-block">
+                                            <i class="fas fa-building-circle-check mr-2"></i> Criar Nova Empresa
+                                        </a>
+                                    </div>
+                                    <div class="col-12 mb-2">
+                                        <a asp-action="Create" asp-controller="Account"
+                                           class="btn btn-primary btn-block">
+                                            <i class="fas fa-user-plus mr-2"></i> Registrar Novo Utilizador
+                                        </a>
+                                    </div>
+                                }
+                                <div class="col-12 mb-2">
+                                    <a asp-action="Index" asp-controller="Companies"
+                                       class="btn btn-outline-primary btn-block">
+                                        <i class="fas fa-list-alt mr-2"></i> Visualizar Empresas
+                                    </a>
+                                </div>
+                                @if (User.IsInRole("CompanyAdmin"))
+                                {
+                                    <div class="col-12 mb-2">
+                                        <a asp-action="Create" asp-controller="Condominiums"
+                                           class="btn btn-outline-warning btn-block">
+                                            <i class="fas fa-city mr-2"></i> Adicionar Novo Condomínio
+                                        </a>
+                                    </div>
+                                }
+                                <div class="col-12 mb-2">
+                                    <a asp-action="Index" asp-controller="Condominium"
+                                       class="btn btn-outline-primary btn-block">
+                                        <i class="fas fa-building mr-2"></i> Gerenciar Condomínios
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <canvas id="myBarChart" style="height:250px; min-height:250px"></canvas>
+                </div>
+
+                <!-- Gráfico -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Visão Geral dos Dados</h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="overviewChart" class="w-full h-64"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Linha 3: Gráfico Unidades e Últimas Atividades -->
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card card-outline card-info">
-                    <div class="card-header">
-                        <h3 class="card-title">Unidades por Condomínio</h3>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="myLineChart" style="height:250px; min-height:250px"></canvas>
-                    </div>
+            <!-- Histórico de atividades -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Histórico de Atividades Recentes</h3>
                 </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="card card-outline card-primary">
-                    <div class="card-header">
-                        <h3 class="card-title">Últimas Atividades</h3>
-                    </div>
-                    <div class="card-body table-responsive p-0" style="max-height:250px; overflow-y:auto;">
-                        <table class="table table-hover text-nowrap">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>📌 ID</th>
-                                    <th>👤 Utilizador</th>
-                                    <th>⚡ Ação</th>
-                                    <th>📅 Data</th>
+                                    <th>ID</th>
+                                    <th>Utilizador</th>
+                                    <th>Ação</th>
+                                    <th>Data</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var activity in Model.RecentActivities)
+                                @if (Model.RecentActivities != null && Model.RecentActivities.Any())
                                 {
-                                    var badgeClass = activity.Action?.Contains("Criou") == true ? "badge-success" :
-                                    activity.Action?.Contains("Atualizou") == true ? "badge-primary" :
-                                    activity.Action?.Contains("Eliminou") == true ? "badge-danger" : "badge-secondary";
+                                    foreach (var activity in Model.RecentActivities)
+                                    {
+                                        var badgeClass = "badge badge-secondary";
+                                        var actionText = activity.Action ?? "Ação Desconhecida";
+
+                                        if (actionText.Contains("Criou"))
+                                        {
+                                            badgeClass = "badge badge-success";
+                                        }
+                                        else if (actionText.Contains("Atualizou"))
+                                        {
+                                            badgeClass = "badge badge-primary";
+                                        }
+                                        else if (actionText.Contains("Eliminou"))
+                                        {
+                                            badgeClass = "badge badge-danger";
+                                        }
+
+                                        <tr>
+                                            <td>@activity.Id</td>
+                                            <td>@activity.UserName</td>
+                                            <td>
+                                                <span class="@badgeClass">@actionText</span>
+                                            </td>
+                                            <td>@activity.Date.ToString("dd MMM yyyy, HH:mm")</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
                                     <tr>
-                                        <td>@activity.Id</td>
-                                        <td>@activity.UserName</td>
-                                        <td><span class="badge @badgeClass">@activity.Action</span></td>
-                                        <td>@activity.Date.ToString("dd MMM yyyy, HH:mm")</td>
+                                        <td colspan="4" class="text-center text-muted">Nenhuma atividade recente encontrada.</td>
                                     </tr>
                                 }
                             </tbody>
@@ -132,65 +204,48 @@
                 </div>
             </div>
         </div>
-
-    </div>
-</section>
-
+    </section>
+    <!-- /.content -->
+</div>
+<!-- /.content-wrapper -->
 @section Scripts {
     <script src="~/AdminLTE/plugins/chart.js/Chart.min.js" asp-append-version="true"></script>
     <script>
-        $(function () {
-
+        document.addEventListener("DOMContentLoaded", function () {
             var dashboardData = @Html.Raw(JsonSerializer.Serialize(Model, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
 
-
-            var ctxBar = document.getElementById('myBarChart').getContext('2d');
-            new Chart(ctxBar, {
-                type: 'bar',
-                data: {
-                    labels: ['Empresas', 'Utilizadores', 'Condomínios'],
-                    datasets: [{
-                        label: 'Quantidade',
-                        data: [
-                            dashboardData.companiesCount,
-                            dashboardData.usersCount,
-                            dashboardData.condominiumsCount
-                        ],
-                        backgroundColor: ['rgba(23,162,184,0.7)','rgba(40,167,69,0.7)','rgba(255,193,7,0.7)'],
-                        borderColor: ['rgba(23,162,184,1)','rgba(40,167,69,1)','rgba(255,193,7,1)'],
-                        borderWidth: 1
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-            });
-
-            var ctxLine = document.getElementById('myLineChart').getContext('2d');
-            new Chart(ctxLine, {
-                type: 'line',
-                data: {
-                    labels: dashboardData.unitCondominiumIds.map(id => id ?? 'N/A'),
-                    datasets: [{
-                        label: 'Unidades por Condomínio',
-                        data: dashboardData.unitCounts.map(c => c ?? 0),
-                        backgroundColor: 'rgba(54,162,235,0.2)',
-                        borderColor: 'rgba(54,162,235,1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4,
-                        pointStyle: 'circle',
-                        pointRadius: 5
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { beginAtZero: true, title: { display: true, text: 'Número de Unidades' } },
-                        x: { title: { display: true, text: 'Condomínios' } }
-                    }
+            var ctx = document.getElementById('overviewChart');
+            if (ctx) {
+                if (Chart.getChart(ctx)) {
+                    Chart.getChart(ctx).destroy();
                 }
-            });
+
+                new Chart(ctx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Empresas', 'Utilizadores', 'Condomínios'],
+                        datasets: [{
+                            data: [
+                                dashboardData.companiesCount || 0,
+                                dashboardData.usersCount || 0,
+                                dashboardData.condominiumsCount || 0
+                            ],
+                            backgroundColor: ['#007bff', '#28a745', '#ffc107'],
+                            borderRadius: 8,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { precision: 0 }
+                            }
+                        }
+                    }
+                });
+            }
         });
     </script>
 }
-

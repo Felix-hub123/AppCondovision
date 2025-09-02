@@ -30,5 +30,9 @@ namespace CondoVision.Models
         [Display(Name = "ID da Unidade")]
         public int? Id { get; set; }
 
+
+        [Display(Name = "Eliminada")]
+        public bool WasDeleted { get; set; }
+
     }
 }

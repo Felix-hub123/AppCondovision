@@ -1,0 +1,135 @@
+﻿@model CondoVision.Models.CompanyViewModel
+
+@{
+    ViewData["Title"] = "Detalhes da Empresa";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section ContentHeader {
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>@ViewData["Title"]</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home">Home</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Companies">Empresas</a></li>
+                    <li class="breadcrumb-item active">@ViewData["Title"]</li>
+                </ol>
+            </div>
+        </div>
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["SuccessMessage"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["ErrorMessage"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+    </div>
+}
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card card-info card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">Detalhes da Empresa</h3>
+                    </div>
+                    <div class="card-body">
+                        @if (Model == null)
+                        {
+                            <div class="alert alert-warning text-center" role="alert">
+                                Empresa não encontrada ou já eliminada.
+                            </div>
+                        }
+                        else
+                        {
+                            <dl class="row">
+                                <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Name)</dt>
+                                <dd class="col-sm-8">@Html.DisplayFor(model => model.Name)</dd>
+                                <dt class="col-sm-4">@Html.DisplayNameFor(model => model.CompanyTaxId)</dt>
+                                <dd class="col-sm-8">@Html.DisplayFor(model => model.CompanyTaxId)</dd>
+                                <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Address)</dt>
+                                <dd class="col-sm-8">@Html.DisplayFor(model => model.Address)</dd>
+                                <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Contact)</dt>
+                                <dd class="col-sm-8">@Html.DisplayFor(model => model.Contact)</dd>
+                                <dt class="col-sm-4">@Html.DisplayNameFor(model => model.LogoId)</dt>
+                                <dd class="col-sm-8">
+                                    @if (Model.LogoId.HasValue)
+                                    {
+                                        <span>@Html.DisplayFor(model => model.LogoId)</span>
+                                        <small class="form-text text-muted">(ID do logotipo associado)</small>
+                                        @if (Url.Action("GetLogo", "Companies", new { id = Model.LogoId }) != null)
+                                        {
+                                            <img src="@Url.Action("GetLogo", "Companies", new { id = Model.LogoId })" alt="Logotipo" class="img-thumbnail ml-2" style="max-width: 100px; max-height: 100px;" />
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Logotipo não disponível</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Nenhum logotipo associado</span>
+                                    }
+                                </dd>
+                                <dt class="col-sm-4">@Html.DisplayNameFor(model => model.CreationDate)</dt>
+                                <dd class="col-sm-8">@Model.CreationDate.ToString("dd/MM/yyyy HH:mm")</dd>
+                                <dt class="col-sm-4">@Html.DisplayNameFor(model => model.WasDeleted)</dt>
+                                <dd class="col-sm-8">@(Model.WasDeleted ? "Sim" : "Não")</dd>
+                                <dt class="col-sm-4">Condomínios Associados</dt>
+                                <dd class="col-sm-8">
+                                    @if (Model.Condominiums != null && Model.Condominiums.Any())
+                                    {
+                                        <ul class="list-group list-group-flush">
+                                            @foreach (var condo in Model.Condominiums)
+                                            {
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    @condo.Name
+                                                    <a asp-action="Details" asp-controller="Condominium" asp-route-id="@condo.Id" class="badge badge-primary badge-pill" title="Ver detalhes do condomínio">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Nenhum condomínio associado</span>
+                                    }
+                                </dd>
+                            </dl>
+                        }
+                    </div>
+                    <div class="card-footer">
+                        @if (User.IsInRole("CompanyAdmin") && Model != null && !Model.WasDeleted)
+                        {
+                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-info" title="Editar empresa" aria-label="Editar">
+                                <i class="fas fa-edit"></i> Editar
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger ml-2" title="Eliminar empresa" aria-label="Eliminar">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </a>
+                        }
+                        <a asp-action="Index" class="btn btn-secondary ml-2" title="Voltar à lista de empresas" aria-label="Voltar">
+                            <i class="fas fa-arrow-left"></i> Voltar à Lista
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

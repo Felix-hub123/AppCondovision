@@ -1,6 +1,7 @@
 ﻿using CondoVision.Data.Entities;
 using CondoVision.Models;
 using CondoVision.Models.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -23,6 +24,54 @@ namespace CondoVision.Data.Helper
         /// <summary>
         /// Converte um User para EditUserViewModel.
         /// </summary>
+        /// 
+
+        public User ToUser(CreateUserViewModel model)
+        {
+            return new User
+            {
+                UserName = model.Email,
+                Email = model.Email,
+                FullName = model.FullName,
+                CompanyId = model.CompanyId,
+                EmailConfirmed = false,
+                TaxId = model.TaxId,
+                DateOfBirth = model.DateOfBirth,
+                PhoneNumber = model.PhoneNumber,
+                Address = model.Address,
+                UserType = model.UserType ?? MapUserTypeFromRole(model.RoleName!)
+            };
+        }
+
+        public List<UserListViewModel> ToUserListViewModelList(IEnumerable<User> users)
+        {
+            var userListViewModels = new List<UserListViewModel>();
+            foreach (var user in users)
+            {
+                userListViewModels.Add(new UserListViewModel
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    FullName = user.FullName,
+                    RoleName = user.UserType
+                });
+            }
+            return userListViewModels;
+        }
+
+        private string MapUserTypeFromRole(string roleName)
+        {
+            return roleName switch
+            {
+                "CompanyAdmin" => "Admin",
+                "CondoManager" => "Manager",
+                "Condômino" => "Resident",
+                _ => "Unknown"
+            };
+        }
+
+
+
         public EditUserViewModel ToEditUserViewModel(User user, string roleName)
         {
             return new EditUserViewModel
@@ -179,8 +228,32 @@ namespace CondoVision.Data.Helper
                 PostalCode = condominium.PostalCode,
                 CompanyId = condominium.CompanyId,
                 RegistrationDate = condominium.RegistrationDate,
+                CompanyName = condominium.Company?.Name,
                 WasDeleted = condominium.WasDeleted
             };
+        }
+
+
+        public EditUnitViewModel ToEditUnitViewModel(Unit unit)
+        {
+            return new EditUnitViewModel
+            {
+                Id = unit.Id,
+                UnitName = unit.UnitName,
+                Permillage = unit.Permillage,
+                OwnerId = unit.OwnerId,
+                CondominiumId = unit.CondominiumId
+            };
+        }
+
+
+
+        public void UpdateUnit(Unit unit, EditUnitViewModel model)
+        {
+            unit.UnitName = model.UnitName;
+            unit.Permillage = model.Permillage;
+            unit.OwnerId = model.OwnerId;
+            unit.CondominiumId = model.CondominiumId;
         }
 
         /// <summary>
@@ -256,7 +329,7 @@ namespace CondoVision.Data.Helper
 
         private async Task<IEnumerable<SelectListItem>> GetCompaniesSelectList()
         {
-            return (await _companyRepository.GetAllCompaniesAsync())
+            return (await _companyRepository.GetAllAsync())
                 .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name });
         }
 
@@ -269,8 +342,6 @@ namespace CondoVision.Data.Helper
                 Id = unit.Id,
                 UnitName = unit.UnitName,
                 Permillage = unit.Permillage,
-                OwnerId = unit.OwnerId,
-                OwnerFullName = unit.Owner?.FullName,
                 CondominiumId = unit.CondominiumId,
                 CondominiumName = unit.Condominium?.Name
             };
@@ -290,7 +361,6 @@ namespace CondoVision.Data.Helper
                 Id = model.Id ?? 0,
                 UnitName = model.UnitName,
                 Permillage = model.Permillage,
-                OwnerId = model.OwnerId,
                 CondominiumId = model.CondominiumId
             };
         }
@@ -302,7 +372,6 @@ namespace CondoVision.Data.Helper
 
             unit.UnitName = model.UnitName;
             unit.Permillage = model.Permillage;
-            unit.OwnerId = model.OwnerId;
             unit.CondominiumId = model.CondominiumId; 
         }
 
@@ -362,6 +431,21 @@ namespace CondoVision.Data.Helper
                 }
             }
             return condominiumVMs; // Retorna List<CondominiumViewModel>
+        }
+
+        public IEnumerable<CompanyViewModel> ToCompanyViewModelList(IEnumerable<Company> companies)
+        {
+            return companies?.Select(ToCompanyViewModel).ToList() ?? new List<CompanyViewModel>();
+        }
+
+        public void UpdateCondominium(Condominium condominium, EditCondominiumViewModel model)
+        {
+            condominium.Name = model.Name;
+            condominium.Address = model.Address;
+            condominium.City = model.City;
+            condominium.PostalCode = model.PostalCode;
+            condominium.CompanyId = model.CompanyId;
+            
         }
 
 

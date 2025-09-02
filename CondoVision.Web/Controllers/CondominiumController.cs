@@ -22,14 +22,12 @@ namespace CondoVision.Web.Controllers
 
 
         public CondominiumController(
-            ICondominiumRepository condominiumRepository,
-            ILogger<CondominiumController> logger,
-            IConverterHelper converterHelper,
-            ICompanyRepository companyRepository,
-            IUnitRepository unitRepository, 
-            UserManager<User> userManager
-
-            )
+              ICondominiumRepository condominiumRepository,
+              ILogger<CondominiumController> logger,
+              IConverterHelper converterHelper,
+              ICompanyRepository companyRepository,
+              IUnitRepository unitRepository,
+              UserManager<User> userManager)
         {
             _condominiumRepository = condominiumRepository;
             _logger = logger;
@@ -37,12 +35,9 @@ namespace CondoVision.Web.Controllers
             _companyRepository = companyRepository;
             _unitRepository = unitRepository;
             _userManager = userManager;
-
         }
 
-
-        
-        [AllowAnonymous]
+        [Authorize]
         public async Task<IActionResult> Index(int? companyId)
         {
             var condominiums = await _condominiumRepository.GetAllCondominiumsWithCompanyAsync();
@@ -52,22 +47,30 @@ namespace CondoVision.Web.Controllers
             }
             var model = condominiums.Select(c => _converterHelper.ToCondominiumViewModel(c)).ToList();
 
-            
-            var companies = await _companyRepository.GetAllCompaniesAsync();
+            var companies = await _companyRepository.GetAllAsync();
             ViewBag.Companies = companies.Select(c => new SelectListItem
             {
                 Value = c.Id.ToString(),
-                Text = c.Name 
+                Text = c.Name
             }).ToList();
 
             return View(model);
         }
 
+        [Authorize(Roles = "CompanyAdmin,CondoManager")]
         public async Task<IActionResult> Units(int condominiumId)
         {
             var condominium = await _condominiumRepository.GetByIdAsync(condominiumId);
             if (condominium == null)
+            {
                 return NotFound();
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (condominium.CompanyId != user?.CompanyId && !User.IsInRole("CompanyAdmin"))
+            {
+                return Forbid();
+            }
 
             var units = await _unitRepository.GetUnitsByCondominiumIdAsync(condominiumId);
             var model = _converterHelper.ToViewModel(units);
@@ -76,22 +79,58 @@ namespace CondoVision.Web.Controllers
             return View(model);
         }
 
-        [AllowAnonymous]
+        [AllowAnonymous] // ou [Authorize] dependendo do requisito
         public async Task<IActionResult> Create()
         {
-            ViewBag.Companies = await _companyRepository.GetAllCompaniesAsync(); 
-            return View(new CreateCondominiumViewModel());
+            var user = await _userManager.GetUserAsync(User);
+            var model = new CreateCondominiumViewModel();
+
+            if (user != null && user.CompanyId.HasValue)
+            {
+                model.Companies = User.IsInRole("CompanyAdmin")
+                    ? (await _companyRepository.GetCompaniesWithCondominiumsAsync()).Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name })
+                    : (await _companyRepository.GetCompaniesWithCondominiumsAsync(user.CompanyId.Value)).Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name });
+            }
+            else
+            {
+                model.Companies = new List<SelectListItem> { new SelectListItem { Value = "", Text = "Nenhuma empresa associada" } };
+                ModelState.AddModelError(string.Empty, "Utilizador sem empresa associada. Contacte um administrador.");
+            }
+
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [AllowAnonymous]
+        [Authorize(Roles = "CompanyAdmin")]
         public async Task<IActionResult> Create(CreateCondominiumViewModel model)
         {
+            var user = await _userManager.GetUserAsync(User);
+
+           
+            if (user != null && user.CompanyId.HasValue)
+            {
+                model.Companies = User.IsInRole("CompanyAdmin")
+                    ? (await _companyRepository.GetCompaniesWithCondominiumsAsync()).Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name })
+                    : (await _companyRepository.GetCompaniesWithCondominiumsAsync(user.CompanyId.Value)).Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name });
+            }
+            else
+            {
+                model.Companies = new List<SelectListItem> { new SelectListItem { Value = "", Text = "Nenhuma empresa associada" } };
+                ModelState.AddModelError(string.Empty, "Utilizador sem empresa associada. Contacte um administrador.");
+            }
+
             if (ModelState.IsValid)
             {
                 try
                 {
+                    if (user == null || !user.CompanyId.HasValue)
+                    {
+                        ModelState.AddModelError(string.Empty, "Usuário não autorizado ou sem empresa associada.");
+                        return View(model);
+                    }
+
+                    model.CompanyId = user.CompanyId.Value; 
                     var condominium = _converterHelper.ToCondominium(model);
                     await _condominiumRepository.AddAsync(condominium);
                     await _condominiumRepository.CompleteAsync();
@@ -99,18 +138,22 @@ namespace CondoVision.Web.Controllers
                     TempData["SuccessMessage"] = "Condomínio criado com sucesso!";
                     return RedirectToAction(nameof(Index));
                 }
+                catch (DbUpdateException ex)
+                {
+                    ModelState.AddModelError(string.Empty, "Erro ao salvar no banco de dados.");
+                    _logger.LogError(ex, "Erro de banco de dados ao criar condomínio");
+                }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError(string.Empty, $"Ocorreu um erro ao criar o condomínio: {ex.Message}");
-                    _logger.LogError(ex, "Erro ao criar condomínio");
+                    ModelState.AddModelError(string.Empty, "Erro inesperado ao criar condomínio.");
+                    _logger.LogError(ex, "Erro inesperado ao criar condomínio");
                 }
             }
 
-            model.Companies = await GetCompaniesSelectList();
             return View(model);
         }
 
-        [AllowAnonymous]
+        [Authorize(Roles = "CompanyAdmin,CondoManager")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -124,19 +167,45 @@ namespace CondoVision.Web.Controllers
                 return NotFound();
             }
 
-            var model = _converterHelper.ToEditCondominiumViewModelAsync(condominium).Result; 
-            ViewBag.Companies = await _companyRepository.GetAllCompaniesAsync();
+            if (!await IsAuthorizedForCondominiumAsync(id.Value))
+                return Forbid();
+
+            var model = await _converterHelper.ToEditCondominiumViewModelAsync(condominium);
+            ViewBag.Companies = (await _companyRepository.GetAllAsync())
+                .Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.Name,
+                    Selected = c.Id == condominium.CompanyId
+                }).ToList();
+
+            if (condominium.CompanyId.HasValue)
+            {
+                var company = await _companyRepository.GetByIdAsync(condominium.CompanyId.Value);
+                ViewBag.CompanyName = company?.Name ?? "Nenhum";
+            }
+            else
+            {
+                ViewBag.CompanyName = "Nenhum";
+            }
+
             return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [AllowAnonymous]
+        [Authorize(Roles = "CompanyAdmin,CondoManager")]
         public async Task<IActionResult> Edit(int id, EditCondominiumViewModel model)
         {
             if (id != model.Id)
             {
                 return NotFound();
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (model.CompanyId != user?.CompanyId && !User.IsInRole("CompanyAdmin"))
+            {
+                return Forbid();
             }
 
             if (ModelState.IsValid)
@@ -146,11 +215,7 @@ namespace CondoVision.Web.Controllers
                     var condominium = await _condominiumRepository.GetCondominiumByIdAsync(id);
                     if (condominium != null && !condominium.WasDeleted)
                     {
-                        condominium.Name = model.Name;
-                        condominium.Address = model.Address;
-                        condominium.City = model.City;
-                        condominium.PostalCode = model.PostalCode;
-                        condominium.CompanyId = model.CompanyId;
+                        _converterHelper.UpdateCondominium(condominium, model);
                         await _condominiumRepository.UpdateCondominiumAsync(condominium);
                         TempData["SuccessMessage"] = "Condomínio atualizado com sucesso!";
                         return RedirectToAction(nameof(Index));
@@ -165,18 +230,23 @@ namespace CondoVision.Web.Controllers
                     }
                     throw;
                 }
+                catch (DbUpdateException ex)
+                {
+                    ModelState.AddModelError(string.Empty, "Erro ao salvar no banco de dados.");
+                    _logger.LogError(ex, "Erro de banco de dados ao atualizar condomínio");
+                }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError(string.Empty, $"Ocorreu um erro ao atualizar o condomínio: {ex.Message}");
-                    _logger.LogError(ex, "Erro ao atualizar condomínio");
+                    ModelState.AddModelError(string.Empty, "Erro inesperado ao atualizar condomínio.");
+                    _logger.LogError(ex, "Erro inesperado ao atualizar condomínio");
                 }
             }
 
-            model.Companies = await GetCompaniesSelectList();
+            model.Companies = await GetCompaniesSelectList(user!.CompanyId!.Value);
             return View(model);
         }
 
-        [AllowAnonymous]
+        [Authorize(Roles = "CompanyAdmin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -190,34 +260,34 @@ namespace CondoVision.Web.Controllers
                 return NotFound();
             }
 
+            if (!await IsAuthorizedForCondominiumAsync(id.Value))
+                return Forbid();
+
             var condominiumVM = _converterHelper.ToCondominiumViewModel(condominium);
             return View(condominiumVM);
         }
 
-        // POST: Condominium/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [AllowAnonymous]
+        [Authorize(Roles = "CompanyAdmin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             try
             {
                 var user = await _userManager.GetUserAsync(User);
-                var userName = user?.Email ?? "Usuário Anônimo";
-
                 var condominium = await _condominiumRepository.GetCondominiumByIdAsync(id);
-                if (condominium != null)
+                if (condominium != null && condominium.CompanyId == user?.CompanyId)
                 {
-                    condominium.WasDeleted = true; // Soft delete
-                    await _condominiumRepository.UpdateCondominiumAsync(condominium); // Ajuste o método conforme necessário
+                    condominium.WasDeleted = true;
+                    await _condominiumRepository.UpdateCondominiumAsync(condominium);
                     _logger.LogInformation("Condomínio com ID {CondominiumId} foi marcado como excluído por {UserName} às {Time} (WEST).",
-                        id, userName, DateTime.Now);
+                        id, user?.Email ?? "Usuário Anônimo", DateTime.Now);
                     TempData["SuccessMessage"] = "Condomínio excluído com sucesso!";
                 }
                 else
                 {
-                    _logger.LogWarning("Tentativa de excluir condomínio com ID {Id} falhou: condomínio não encontrado.", id);
-                    TempData["ErrorMessage"] = "Condomínio não encontrado.";
+                    _logger.LogWarning("Tentativa de excluir condomínio com ID {Id} falhou: acesso negado.", id);
+                    TempData["ErrorMessage"] = "Acesso negado ou condomínio não encontrado.";
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -226,7 +296,6 @@ namespace CondoVision.Web.Controllers
                 _logger.LogError(ex, "Erro de banco de dados ao excluir condomínio com ID {Id} por {UserName} às {Time} (WEST).",
                     id, (await _userManager.GetUserAsync(User))?.Email ?? "Usuário Anônimo", DateTime.Now);
                 ModelState.AddModelError("", "Erro ao excluir: problema com o banco de dados.");
-
                 var condominium = await _condominiumRepository.GetCondominiumByIdAsync(id);
                 return condominium == null ? NotFound() : View("Delete", _converterHelper.ToCondominiumViewModel(condominium));
             }
@@ -240,10 +309,34 @@ namespace CondoVision.Web.Controllers
             }
         }
 
-        private async Task<IEnumerable<SelectListItem>> GetCompaniesSelectList()
+        [Authorize(Roles = "CompanyAdmin,CondoManager")]
+        public async Task<IActionResult> Details(int id)
         {
-            return (await _companyRepository.GetAllCompaniesAsync())
-                .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name });
+            var condominium = await _condominiumRepository.GetCondominiumByIdAsync(id);
+            if (condominium == null || condominium.WasDeleted)
+                return NotFound();
+
+            if (!await IsAuthorizedForCondominiumAsync(id))
+                return Forbid();
+
+            var model = _converterHelper.ToCondominiumViewModel(condominium);
+            return View(model);
+        }
+
+        private async Task<bool> IsAuthorizedForCondominiumAsync(int condominiumId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null || !user.CompanyId.HasValue)
+                return false;
+
+            var condominium = await _condominiumRepository.GetCondominiumByIdAsync(condominiumId);
+            return condominium != null && (condominium.CompanyId == user.CompanyId || User.IsInRole("CompanyAdmin"));
+        }
+
+        private async Task<IEnumerable<SelectListItem>> GetCompaniesSelectList(int companyId)
+        {
+            var companies = await _companyRepository.GetCompaniesWithCondominiumsAsync(companyId);
+            return companies.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name });
         }
     }
 }

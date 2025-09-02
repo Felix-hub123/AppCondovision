@@ -36,7 +36,9 @@ namespace CondoVision.Data.Entities
 
              
         public ICollection<CondominiumUser>? CondominiumUsers { get; set; }
-      
+
+        public ICollection<Payment>? Payments { get; set; }
+
     }
 
 }

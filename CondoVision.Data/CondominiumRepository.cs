@@ -13,11 +13,14 @@ namespace CondoVision.Models.Entities
 
         }
 
-        public async Task<IEnumerable<Condominium>> GetAllActiveAsync()
+        public async Task<IEnumerable<Condominium>> GetAllActiveAsync(int? companyId = null)
         {
-            return await _context.Condominiums
-                .Where(c => !c.WasDeleted)
-                .ToListAsync();
+            var query = _context.Condominiums.Where(c => !c.WasDeleted);
+            if (companyId.HasValue)
+            {
+                query = query.Where(c => c.CompanyId == companyId);
+            }
+            return await query.ToListAsync();
         }
 
         public Task<List<Condominium>> GetCondominiumsByCompanyIdAsync(int companyId)
@@ -28,38 +31,53 @@ namespace CondoVision.Models.Entities
             }
 
             return _context.Condominiums
-                .Where(c => c.CompanyId == companyId && !c.WasDeleted) 
-                .Include(c => c.Address) 
+                .Where(c => c.CompanyId == companyId && !c.WasDeleted)
+                .Include(c => c.Address)
                 .ToListAsync();
         }
 
-
-        // Em CondominiumRepository.cs
-        public async Task<IEnumerable<Condominium>> GetAllCondominiumsWithCompanyAsync()
+        public async Task<IEnumerable<Condominium>> GetAllCondominiumsWithCompanyAsync(int? companyId = null)
         {
-            return await _context.Condominiums
-                .Include(c => c.Company) // Inclui a relação com Company
-                .Where(c => !c.WasDeleted)
-                .ToListAsync();
+            var query = _context.Condominiums
+                .Include(c => c.Company)
+                .Where(c => !c.WasDeleted);
+            if (companyId.HasValue)
+            {
+                query = query.Where(c => c.CompanyId == companyId);
+            }
+            return await query.ToListAsync();
         }
 
-        public async Task<IEnumerable<Condominium>> GetAllCondominiumsAsync()
+        public async Task<IEnumerable<Condominium>> GetAllCondominiumsAsync(int? companyId = null)
         {
-            return await base.GetAllAsync();
+            var query = _context.Condominiums.Where(c => !c.WasDeleted);
+            if (companyId.HasValue)
+            {
+                query = query.Where(c => c.CompanyId == companyId);
+            }
+            return await query.ToListAsync();
         }
 
-        public async Task<string?> GetCondominiumNameByIdAsync(int id)
+        public async Task<string?> GetCondominiumNameByIdAsync(int id, int? companyId = null)
         {
-            return (await GetByIdAsync(id))?.Name;
+            var condo = await GetByIdAsync(id, companyId);
+            return condo?.Name;
         }
 
-        public async Task<Condominium?> GetCondominiumByIdAsync(int id)
+        public async Task<Condominium?> GetByIdAsync(int id, int? companyId = null)
         {
-            return await base.GetByIdAsync(id);
+            var query = _context.Condominiums.Where(c => !c.WasDeleted);
+            if (companyId.HasValue)
+            {
+                query = query.Where(c => c.CompanyId == companyId);
+            }
+            return await query.FirstOrDefaultAsync(c => c.Id == id);
         }
 
-
-
+        public async Task<Condominium?> GetCondominiumByIdAsync(int id, int? companyId = null)
+        {
+            return await GetByIdAsync(id, companyId);
+        }
 
         public async Task<Condominium> AddCondominiumAsync(Condominium condominium)
         {
@@ -79,7 +97,7 @@ namespace CondoVision.Models.Entities
 
         public async Task DeleteCondominiumAsync(int id)
         {
-            var condominium = await base.GetByIdAsync(id, true); 
+            var condominium = await GetByIdAsync(id);
             if (condominium != null)
             {
                 await base.DeleteAsync(condominium);
@@ -88,7 +106,9 @@ namespace CondoVision.Models.Entities
 
         public async Task CompleteAsync()
         {
-            await _context.SaveChangesAsync(); 
+            await _context.SaveChangesAsync();
         }
+
+
     }
 }

@@ -308,9 +308,10 @@ namespace CondoVision.Data.Helper
         public async Task<User?> GetUserWithDetailsAsync(string userId)
         {
             return await _userManager.Users
-                 .Include(u => u.OwnedUnits)
-                .Include(u => u.CondominiumUsers)
-                .FirstOrDefaultAsync(u => u.Id == userId);
+         .Include(u => u.CondominiumUsers)
+         .Include(u => u.FractionOwners)
+             .ThenInclude(fo => fo.Unit)
+         .FirstOrDefaultAsync(u => u.Id == userId);
         }
 
         // Este método GetUserId sem parâmetro user ClaimsPrincipal, usa o HttpContextAccessor

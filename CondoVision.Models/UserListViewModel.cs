@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CondoVision.Data.Entities;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -20,5 +21,9 @@ namespace CondoVision.Models
 
         [Display(Name = "Nome de Usuário")]
         public string? PhoneNumber { get; set; }
+
+        public List<User>? Items { get; set; }
+              
+        public string? RoleName { get; set; }
     }
 }
