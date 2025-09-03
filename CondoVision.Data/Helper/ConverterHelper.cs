@@ -94,7 +94,7 @@ namespace CondoVision.Data.Helper
                 Email = model.Email,
                 UserName = model.Email,
                 WasDeleted = false,
-                CompanyId = companyId, 
+                CompanyId = companyId,
                 TaxId = model.TaxId,
                 DateOfBirth = model.DateOfBirth,
                 Address = model.Address
@@ -106,7 +106,7 @@ namespace CondoVision.Data.Helper
         {
             user.FullName = model.FullName;
             user.Email = model.Email;
-            user.UserName = model.Email; 
+            user.UserName = model.Email;
             return user;
         }
         public User ToUser(EditUserViewModel model)
@@ -117,7 +117,7 @@ namespace CondoVision.Data.Helper
                 FullName = model.FullName,
                 Email = model.Email,
                 UserName = model.Email,
-                WasDeleted = false 
+                WasDeleted = false
             };
         }
 
@@ -215,7 +215,7 @@ namespace CondoVision.Data.Helper
             return existingUser;
         }
 
-      
+
 
         public CondominiumViewModel ToCondominiumViewModel(Condominium condominium)
         {
@@ -372,7 +372,7 @@ namespace CondoVision.Data.Helper
 
             unit.UnitName = model.UnitName;
             unit.Permillage = model.Permillage;
-            unit.CondominiumId = model.CondominiumId; 
+            unit.CondominiumId = model.CondominiumId;
         }
 
 
@@ -445,10 +445,84 @@ namespace CondoVision.Data.Helper
             condominium.City = model.City;
             condominium.PostalCode = model.PostalCode;
             condominium.CompanyId = model.CompanyId;
-            
+
         }
 
 
+        public PaymentViewModel ToViewModel(Payment payment)
+        {
+            return new PaymentViewModel
+            {
+                Id = payment.Id,
+                UnitId = payment.UnitId,
+                Amount = payment.Amount,
+                PaymentDate = payment.PaymentDate,
+                Description = payment.Description,
+                IsPaid = payment.IsPaid,
+                ValidatedById = payment.ValidatedById,
+                ValidationDate = payment.ValidationDate
+            };
+        }
+
+        public IEnumerable<PaymentViewModel> ToViewModel(IEnumerable<Payment> payments)
+        {
+            return payments.Select(p => ToViewModel(p));
+        }
+
+        public Payment ToEntity(CreatePaymentViewModel model)
+        {
+            return new Payment
+            {
+                UnitId = model.UnitId,
+                Amount = model.Amount,
+                PaymentDate = model.PaymentDate,
+                Description = model.Description,
+                IsPaid = true,
+                WasDeleted = false
+            };
+        }
+
+        public IEnumerable<NotificationViewModel> ToViewModel(IEnumerable<Notification> notifications)
+        {
+            return notifications.Select(n => new NotificationViewModel
+            {
+                Id = n.Id,
+                CondominiumId = n.CondominiumId,
+                Message = n.Message,
+                NotificationDate = n.NotificationDate,
+                IsRead = n.IsRead,
+                WasDeleted = n.WasDeleted
+                // Adicione outros campos conforme necessário
+            });
+
+
+        }
+
+        public Occurrence ToEntity(CreateOccurrenceViewModel model) 
+        {
+            return new Occurrence
+            {
+                UnitId = model.UnitId,
+                Description = model.Description,
+                OccurrenceDate = model.OccurrenceDate ?? DateTime.Now, 
+                Status = "Aberta",
+                WasDeleted = false
+            };
+        }
+
+        public IEnumerable<AssemblyViewModel> ToViewModel(IEnumerable<Assembly> assemblies)
+        {
+            return assemblies.Select(a => new AssemblyViewModel
+            {
+                Id = a.Id,
+                Title = a.Title,
+                AssemblyDate = a.AssemblyDate,
+                CondominiumId = a.CondominiumId,
+                Minutes = a.Minutes,
+                IsPublished = a.IsPublished,
+                WasDeleted = a.WasDeleted
+            });
+        }
     }
 
 

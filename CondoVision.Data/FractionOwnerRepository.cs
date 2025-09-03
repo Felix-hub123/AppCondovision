@@ -13,49 +13,42 @@ namespace CondoVision.Data
         public FractionOwnerRepository(DataContext context) : base(context)
         {
         }
-        public async Task<IEnumerable<FractionOwner>> GetAllActiveAsync()
+
+
+        public async Task<IEnumerable<FractionOwner>> GetAllActiveAsync(int? companyId)
         {
             return await _context.FractionOwners
-                .Where(f => !f.WasDeleted)
-                .Include(f => f.Unit)
-                .ThenInclude(u => u!.Condominium)
-                .Include(f => f.User)
+                .Include(fo => fo.Unit)
+                .Include(fo => fo.User)
+                .Where(fo => !fo.WasDeleted && fo.Unit.CompanyId == companyId)
                 .ToListAsync();
         }
 
-        public async Task CreateWithRelationsAsync(FractionOwner entity)
+        public async Task<FractionOwner> GetByIdAsync(int id, int? companyId)
         {
-            if (entity.UnitId > 0)
-            {
-                entity.Unit = await _context.Units.FindAsync(entity.UnitId);
-                if (entity.Unit == null)
-                    throw new ArgumentException("Unidade não encontrada.");
-            }
-            if (!string.IsNullOrEmpty(entity.UserId))
-            {
-                entity.User = await _context.Users.FindAsync(entity.UserId);
-                if (entity.User == null)
-                    throw new ArgumentException("Usuário não encontrado.");
-            }
-            await _context.FractionOwners.AddAsync(entity);
+            return await _context.FractionOwners
+                .Include(fo => fo.Unit)
+                .Include(fo => fo.User)
+                .FirstOrDefaultAsync(fo => fo.Id == id && fo.Unit.CompanyId == companyId && !fo.WasDeleted);
+        }
+
+        public async Task<FractionOwner> GetByUserIdAsync(string userId, int? companyId)
+        {
+            return await _context.FractionOwners
+                .Include(fo => fo.Unit)
+                .Include(fo => fo.User)
+                .FirstOrDefaultAsync(fo => fo.UserId == userId && fo.Unit.CompanyId == companyId && !fo.WasDeleted);
+        }
+
+        public async Task CreateWithRelationsAsync(FractionOwner fractionOwner)
+        {
+            await _context.FractionOwners.AddAsync(fractionOwner);
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateWithRelationsAsync(FractionOwner entity)
+        public async Task UpdateWithRelationsAsync(FractionOwner fractionOwner)
         {
-            if (entity.UnitId > 0)
-            {
-                entity.Unit = await _context.Units.FindAsync(entity.UnitId);
-                if (entity.Unit == null)
-                    throw new ArgumentException("Unidade não encontrada.");
-            }
-            if (!string.IsNullOrEmpty(entity.UserId))
-            {
-                entity.User = await _context.Users.FindAsync(entity.UserId);
-                if (entity.User == null)
-                    throw new ArgumentException("Usuário não encontrado.");
-            }
-            _context.FractionOwners.Update(entity);
+            _context.FractionOwners.Update(fractionOwner);
             await _context.SaveChangesAsync();
         }
     }

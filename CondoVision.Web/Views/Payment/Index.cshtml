@@ -1,0 +1,106 @@
+﻿@model IEnumerable<CondoVision.Models.PaymentViewModel>
+
+@{
+    ViewData["Title"] = "Pagamentos da Unidade " + (ViewBag.UnitName ?? "Selecione uma Unidade");
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0 text-dark">@ViewData["Title"]</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Home</a></li>
+                        <li class="breadcrumb-item active">@ViewData["Title"]</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            }
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Filtro de Unidade</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="col-form-label">Selecione uma Unidade</label>
+                                <select asp-items="ViewBag.Units" class="form-control" onchange="location.href='@Url.Action("Index", "Payment")?unitId=' + this.value">
+                                    <option value="">-- Selecione uma Unidade --</option>
+                                </select>
+                            </div>
+                        </div>
+                        @if (ViewBag.UnitId != null)
+                        {
+                            <div class="col-md-6 text-right">
+                                <a asp-action="Create" asp-route-unitId="@ViewBag.UnitId" class="btn btn-primary mt-2">Registrar Pagamento</a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @if (ViewBag.UnitId != null)
+            {
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h3 class="card-title">Lista de Pagamentos</h3>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>@Html.DisplayNameFor(model => model.Amount)</th>
+                                    <th>@Html.DisplayNameFor(model => model.PaymentDate)</th>
+                                    <th>@Html.DisplayNameFor(model => model.Description)</th>
+                                    <th>@Html.DisplayNameFor(model => model.IsPaid)</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model ?? Enumerable.Empty<CondoVision.Models.PaymentViewModel>())
+                                {
+                                    <tr>
+                                        <td>@Html.DisplayFor(modelItem => item.Amount) €</td>
+                                        <td>@Html.DisplayFor(modelItem => item.PaymentDate)</td>
+                                        <td>@Html.DisplayFor(modelItem => item.Description)</td>
+                                        <td>@Html.DisplayFor(modelItem => item.IsPaid)</td>
+                                        <td>
+                                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">Detalhes</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card mt-4">
+                    <div class="card-body text-center">
+                        <p>Por favor, selecione uma unidade para visualizar os pagamentos.</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+</div>

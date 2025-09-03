@@ -3,6 +3,7 @@ using CondoVision.Models.Interface;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -40,6 +41,14 @@ namespace CondoVision.Models.Entities
         [EmailAddress]
         [StringLength(200)]
         public string OwnerEmail { get; set; } = string.Empty;
+
+
+        [Required] 
+        public int? CompanyId { get; set; }
+
+
+        [ForeignKey("CompanyId")]
+        public Company? Company { get; set; }
 
         public bool WasDeleted { get; set; } = false;
     }

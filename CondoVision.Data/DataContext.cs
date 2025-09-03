@@ -29,6 +29,9 @@ namespace CondoVision.Data
         public DbSet<Company> Companies { get; set; }
         public DbSet<RecentActivity> RecentActivities { get; set; }
         public DbSet<FractionOwner> FractionOwners { get; set; }
+        public DbSet<Assembly> Assemblies { get; set; }
+        public DbSet<Occurrence> Occurrences { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
         public DbSet<Payment> Payments { get; set; }
 
         public DbSet<ActivityLog> ActivityLogs { get; set; }
@@ -113,16 +116,16 @@ namespace CondoVision.Data
 
 
             modelBuilder.Entity<Payment>()
-                .HasOne(p => p.User)
-                .WithMany(u => u.Payments)
-                .HasForeignKey(p => p.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
+               .HasOne(p => p.CreatedBy)
+               .WithMany(u => u.Payments)
+               .HasForeignKey(p => p.CreatedById)
+               .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Payment>()
-                .HasOne(p => p.Condominium)
-                .WithMany(c => c.Payments)
-                .HasForeignKey(p => p.CondominiumId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasOne(p => p.ValidatedBy)
+                .WithMany()
+                .HasForeignKey(p => p.ValidatedById)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Payment>()
                 .Property(p => p.Amount)

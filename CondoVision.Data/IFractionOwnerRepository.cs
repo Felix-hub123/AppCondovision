@@ -9,12 +9,11 @@ namespace CondoVision.Data
 {
     public interface IFractionOwnerRepository : IGenericRepository<FractionOwner>
     {
-        Task<IEnumerable<FractionOwner>> GetAllActiveAsync();
-
-        Task CreateWithRelationsAsync(FractionOwner entity);
-
-
-        Task UpdateWithRelationsAsync(FractionOwner entity);
+        Task<IEnumerable<FractionOwner>> GetAllActiveAsync(int? companyId);
+        Task<FractionOwner> GetByIdAsync(int id, int? companyId);
+        Task<FractionOwner> GetByUserIdAsync(string userId, int? companyId);
+        Task CreateWithRelationsAsync(FractionOwner fractionOwner);
+        Task UpdateWithRelationsAsync(FractionOwner fractionOwner);
 
     }
 }

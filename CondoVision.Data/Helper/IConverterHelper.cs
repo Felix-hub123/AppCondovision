@@ -74,5 +74,21 @@ namespace CondoVision.Data.Helper
         IEnumerable<CompanyViewModel> ToCompanyViewModelList(IEnumerable<Company> companies);
 
         void UpdateCondominium(Condominium condominium, EditCondominiumViewModel model);
+
+        Payment ToEntity(CreatePaymentViewModel model); 
+
+        IEnumerable<PaymentViewModel> ToViewModel(IEnumerable<Payment> payments);
+
+        PaymentViewModel ToViewModel(Payment payment);
+
+        IEnumerable<NotificationViewModel> ToViewModel(IEnumerable<Notification> notifications);
+
+        Occurrence ToEntity(CreateOccurrenceViewModel model);
+
+        IEnumerable<AssemblyViewModel> ToViewModel(IEnumerable<Assembly> assemblies);
+
+
+
+
     }
 }

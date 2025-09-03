@@ -1,0 +1,64 @@
+﻿@model CondoVision.Models.PaymentViewModel
+
+@{
+    ViewData["Title"] = "Detalhes do Pagamento #" + Model.Id;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0 text-dark">@ViewData["Title"]</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Home</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="Payment" asp-action="Index">Pagamentos</a></li>
+                        <li class="breadcrumb-item active">@ViewData["Title"]</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            }
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Detalhes do Pagamento</h3>
+                        </div>
+                        <div class="card-body">
+                            <dl class="row">
+                                <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Amount)</dt>
+                                <dd class="col-sm-8">@Html.DisplayFor(model => model.Amount) €</dd>
+                                <dt class="col-sm-4">@Html.DisplayNameFor(model => model.PaymentDate)</dt>
+                                <dd class="col-sm-8">@Html.DisplayFor(model => model.PaymentDate)</dd>
+                                <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Description)</dt>
+                                <dd class="col-sm-8">@Html.DisplayFor(model => model.Description)</dd>
+                                <dt class="col-sm-4">@Html.DisplayNameFor(model => model.IsPaid)</dt>
+                                <dd class="col-sm-8">@Html.DisplayFor(model => model.IsPaid)</dd>
+                            </dl>
+                        </div>
+                        <div class="card-footer text-right">
+                            <a asp-action="Index" asp-route-unitId="@Model.UnitId" class="btn btn-primary">Voltar</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

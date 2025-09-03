@@ -43,6 +43,8 @@ namespace CondoVision.Data.Entities
 
         public int? CompanyId { get; set; }
 
+        public Company? Company { get; set; }
+
         public string? TaxId { get; set; }
 
         public DateTime DateOfBirth { get; set; }
@@ -55,7 +57,9 @@ namespace CondoVision.Data.Entities
         /// <summary>
         /// Navigation property for associated condominiums (if applicable, e.g., for managers).
         /// </summary>
-        public Company? Company { get; set; }
+        /// 
+       
+     
 
         public ICollection<CondominiumUser>? CondominiumUsers { get; set; }
 

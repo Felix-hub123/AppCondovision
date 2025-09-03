@@ -1,4 +1,6 @@
 ﻿using CondoVision.Data.Entities;
+using CondoVision.Models;
+using CondoVision.Models.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,7 +33,8 @@ namespace CondoVision.Data
         Task<IEnumerable<Company>> GetCompaniesWithCondominiumsAsync();
 
         Task<List<Company>> GetCompaniesWithCondominiumsAsync(int? companyId = null);
-        
+
+       
     }
 
 }

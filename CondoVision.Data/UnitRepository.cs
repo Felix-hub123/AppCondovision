@@ -14,11 +14,36 @@ namespace CondoVision.Data
         {
         }
 
+
+
+        public async Task<IEnumerable<Unit>> GetAllActiveAsync(int? companyId)
+        {
+            return await _context.Units
+                .Include(u => u.Condominium)
+                .Where(u => !u.WasDeleted && u.Condominium.CompanyId == companyId)
+                .ToListAsync();
+        }
+
+        public async Task<Unit> GetByIdAsync(int id, int? companyId)
+        {
+            return await _context.Units
+                .Include(u => u.Condominium)
+                .FirstOrDefaultAsync(u => u.Id == id && u.Condominium.CompanyId == companyId && !u.WasDeleted);
+        }
         public new Task<Unit> GetByIdAsync(int id, bool ignoreSoftDelete = false)
         {
             return base.GetByIdAsync(id, ignoreSoftDelete);
         }
 
+        public async Task<IEnumerable<Unit>> GetAllAsync(int? companyId = null)
+        {
+            var query = _context.Units.AsQueryable();
+            if (companyId.HasValue)
+            {
+                query = query.Where(u => u.CompanyId == companyId);
+            }
+            return await query.ToListAsync();
+        }
         public async Task<Unit> GetByIdAsync(int id, int? companyId, bool ignoreSoftDelete = false)
         {
             var query = _context.Set<Unit>().AsNoTracking();
